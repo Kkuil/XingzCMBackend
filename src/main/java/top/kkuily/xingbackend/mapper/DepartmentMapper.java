@@ -1,0 +1,18 @@
+package top.kkuily.xingbackend.mapper;
+
+import top.kkuily.xingbackend.model.po.Department;
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+
+/**
+* @author 小K
+* @description 针对表【department】的数据库操作Mapper
+* @createDate 2023-05-21 13:03:51
+* @Entity top.kkuily.xingbackend.model.po.Department
+*/
+public interface DepartmentMapper extends BaseMapper<Department> {
+
+}
+
+
+
+

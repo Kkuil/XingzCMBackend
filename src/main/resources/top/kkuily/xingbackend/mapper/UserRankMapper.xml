@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="top.kkuily.xingbackend.mapper.UserRankMapper">
+
+    <resultMap id="BaseResultMap" type="top.kkuily.xingbackend.model.po.UserRank">
+            <id property="id" column="id" jdbcType="VARCHAR"/>
+            <result property="points" column="points" jdbcType="INTEGER"/>
+            <result property="isdeleted" column="isDeleted" jdbcType="OTHER"/>
+            <result property="createdtime" column="createdTime" jdbcType="TIMESTAMP"/>
+            <result property="modifiedtime" column="modifiedTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,points,isDeleted,
+        createdTime,modifiedTime
+    </sql>
+</mapper>
