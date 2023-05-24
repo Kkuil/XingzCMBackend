@@ -1,4 +1,4 @@
-package top.kkuily.xingbackend.model.dto.response;
+package top.kkuily.xingbackend.model.dto.response.admin;
 
 import lombok.Data;
 import top.kkuily.xingbackend.model.po.Admin;

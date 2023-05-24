@@ -1,4 +1,4 @@
-package top.kkuily.xingbackend.model.dto.request;
+package top.kkuily.xingbackend.model.dto.request.commons;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -10,7 +10,7 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class ListParams {
-    private Object params;
-    private Object sort;
-    private Object filter;
+    private String params;
+    private String sort;
+    private String filter;
 }

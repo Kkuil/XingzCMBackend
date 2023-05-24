@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Configuration;
 
 import java.io.IOException;
 
-import static top.kkuily.xingbackend.constant.Login.TOKEN_KEY_IN_HEADER;
+import static top.kkuily.xingbackend.constant.admin.Login.ADMIN_TOKEN_KEY_IN_HEADER;
 
 /**
  * @author 小K
@@ -18,7 +18,7 @@ public class FilterConfig implements Filter {
         // 设置响应头
         HttpServletResponse httpResponse = (HttpServletResponse) response;
         httpResponse.setHeader("Access-Control-Allow-Origin", "*");
-        httpResponse.setHeader("Access-Control-Expose-Headers", TOKEN_KEY_IN_HEADER);
+        httpResponse.setHeader("Access-Control-Expose-Headers", ADMIN_TOKEN_KEY_IN_HEADER);
 
         // 继续执行请求
         chain.doFilter(request, response);

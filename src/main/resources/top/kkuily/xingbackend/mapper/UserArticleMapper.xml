@@ -9,9 +9,9 @@
             <result property="published" column="published" jdbcType="OTHER"/>
             <result property="liked" column="liked" jdbcType="OTHER"/>
             <result property="collected" column="collected" jdbcType="OTHER"/>
-            <result property="isdeleted" column="isDeleted" jdbcType="OTHER"/>
-            <result property="createdtime" column="createdTime" jdbcType="TIMESTAMP"/>
-            <result property="modifiedtime" column="modifiedTime" jdbcType="TIMESTAMP"/>
+            <result property="isDeleted" column="isDeleted" jdbcType="OTHER"/>
+            <result property="createdTime" column="createdTime" jdbcType="TIMESTAMP"/>
+            <result property="modifiedTime" column="modifiedTime" jdbcType="TIMESTAMP"/>
     </resultMap>
 
     <sql id="Base_Column_List">

@@ -4,7 +4,9 @@ import jakarta.annotation.Resource;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import top.kkuily.xingbackend.web.interceptor.TokenInterceptor;
+import top.kkuily.xingbackend.web.interceptor.admin.AdminTokenInterceptor;
+import top.kkuily.xingbackend.web.interceptor.user.UserTokenInterceptor;
+import top.kkuily.xingbackend.web.interceptor.GlobalInterceptor;
 
 
 /**
@@ -15,15 +17,41 @@ import top.kkuily.xingbackend.web.interceptor.TokenInterceptor;
 public class WebMvcConfig implements WebMvcConfigurer {
 
     @Resource
-    private TokenInterceptor tokenInterceptor;
+    private AdminTokenInterceptor adminTokenInterceptor;
+
+    @Resource
+    private UserTokenInterceptor userTokenInterceptor;
+
+    @Resource
+    private GlobalInterceptor globalInterceptor;
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        // 排除白名单请求路径
+        // 全局拦截器
         registry
-                .addInterceptor(tokenInterceptor)
+                .addInterceptor(globalInterceptor)
+                .addPathPatterns("/**/*");
+        // 管理员信息拦截器
+        registry
+                .addInterceptor(adminTokenInterceptor)
+                .addPathPatterns(
+                        "/xingz_cm/admin-*"
+                )
                 .excludePathPatterns(
-                        "/xingz_cm/admin-login"
+                        "/xingz_cm/admin-login-account",
+                        "/xingz_cm/admin-login-phone"
+                );
+        // 用户信息拦截器
+        registry
+                .addInterceptor(userTokenInterceptor)
+                .addPathPatterns(
+                        "/xingz_cm/user-*"
+                )
+                .excludePathPatterns(
+                        "/xingz_cm/user-login-account",
+                        "/xingz_cm/user-login-phone",
+                        "/xingz_cm/user-registry",
+                        "/xingz_cm/user-forget-pwd"
                 );
     }
 }

@@ -1,6 +1,5 @@
 package top.kkuily.xingbackend.service.impl;
 
-import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.lang.UUID;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
@@ -14,10 +13,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.util.StringUtils;
-import top.kkuily.xingbackend.model.dto.request.AdminAuthInfo;
-import top.kkuily.xingbackend.model.dto.request.ListParams;
-import top.kkuily.xingbackend.model.dto.request.AdminLoginBody;
-import top.kkuily.xingbackend.model.dto.response.AdminListRes;
+import top.kkuily.xingbackend.model.dto.request.admin.AdminAuthInfo;
+import top.kkuily.xingbackend.model.dto.request.admin.AdminLoginAccountBody;
+import top.kkuily.xingbackend.model.dto.request.admin.AdminLoginPhoneBody;
+import top.kkuily.xingbackend.model.dto.request.commons.ListParams;
+import top.kkuily.xingbackend.model.dto.response.admin.AdminListRes;
 import top.kkuily.xingbackend.model.po.Admin;
 import top.kkuily.xingbackend.model.po.Role;
 import top.kkuily.xingbackend.model.po.RoleAuth;
@@ -33,10 +33,12 @@ import top.kkuily.xingbackend.utils.Token;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import static top.kkuily.xingbackend.constant.Login.*;
+import static top.kkuily.xingbackend.constant.admin.Login.*;
+import static top.kkuily.xingbackend.constant.commons.Api.PHONE_REG;
 
 /**
  * @author 小K
@@ -57,47 +59,96 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
     private StringRedisTemplate stringRedisTemplate;
 
     /**
-     * 管理员登录服务
+     * 管理员账号登录服务
      *
-     * @param response       HttpServletResponse
-     * @param adminLoginBody AdminLoginBody
+     * @param response              HttpServletResponse
+     * @param adminLoginAccountBody AdminLoginAccountBody
      * @return Result
      */
     @Override
-    public Result login(HttpServletResponse response, AdminLoginBody adminLoginBody) {
-        String type = adminLoginBody.getType();
-        switch (type) {
-            case "account": {
-                return loginWithAccount(response, adminLoginBody);
+    public Result loginWithAccount(HttpServletResponse response, AdminLoginAccountBody adminLoginAccountBody) {
+        String id = adminLoginAccountBody.getId();
+        String password = adminLoginAccountBody.getPassword();
+        // 1. 判断账号是否为空
+        if (id == null) {
+            return Result.fail(400, "账号不能为空", ErrorType.NOTIFICATION);
+        }
+        Admin adminInfo = this.getById(id);
+        if (adminInfo == null) {
+            return Result.fail(400, "账号或密码错误，如果忘记密码，请联系管理员重置密码", ErrorType.NOTIFICATION);
+        }
+        // 2. 判断账号密码是否正确
+        if (!adminInfo.getId().equals(id) || !adminInfo.getPassword().equals(password)) {
+            return Result.fail(400, "账号或密码错误，如果忘记密码，请联系管理员重置密码", ErrorType.NOTIFICATION);
+        }
+        // 3. 生成Token
+        String token = saveTokenVersion(adminInfo, true, new DefaultClaims());
+        // 4. 添加Token响应头
+        response.addHeader(ADMIN_TOKEN_KEY_IN_HEADER, token);
+        // 5. 登录成功，返回管理员基本信息
+        return Result.success("登录成功", true);
+    }
+
+    /**
+     * @param response            HttpServletResponse
+     * @param adminLoginPhoneBody AdminLoginPhoneBody
+     * @return Result
+     * @description 使用手机号登录
+     */
+    @Override
+    public Result loginWithPhone(HttpServletResponse response, AdminLoginPhoneBody adminLoginPhoneBody) {
+        String phone = adminLoginPhoneBody.getPhone();
+        String sms = adminLoginPhoneBody.getSms();
+        if (phone == null) {
+            return Result.fail(401, "非法请求", ErrorType.ERROR_MESSAGE);
+        }
+        if (sms == null) {
+            return Result.fail(400, "验证码参数不能为空", ErrorType.NOTIFICATION);
+        }
+        Pattern reg = Pattern.compile(PHONE_REG);
+        Matcher matcher = reg.matcher(phone);
+        if (matcher.matches()) {
+            String smsInCache = stringRedisTemplate.opsForValue()
+                    .get(ADMIN_SMS_CHCHE_KEY + phone);
+            if (sms.equals(smsInCache)) {
+                // 根据手机号查询管理员
+                QueryWrapper<Admin> adminWrapper = new QueryWrapper<>();
+                adminWrapper.eq("phone", phone);
+                Admin admin = this.getOne(adminWrapper);
+                if (admin == null) {
+                    return Result.fail(401, "手机号不存在，禁止访问", ErrorType.NOTIFICATION);
+                }
+                // 生成token
+                String token = saveTokenVersion(admin, true, new DefaultClaims());
+                response.setHeader(ADMIN_TOKEN_KEY_IN_HEADER, token);
+                return Result.success("登录成功", true);
+            } else {
+                return Result.fail(403, "验证码错误，请重新输入", ErrorType.ERROR_MESSAGE);
             }
-            case "mobile": {
-                return loginWithMobile(response, adminLoginBody);
-            }
-            default: {
-                return Result.fail(401, "非法请求", ErrorType.NOTIFICATION);
-            }
+        } else {
+            return Result.fail(403, "手机号格式错误，请检查手机号格式", ErrorType.NOTIFICATION);
         }
     }
 
     /**
-     * 管理员鉴权服务
-     *
      * @param request HttpServletRequest
      * @return Result
+     * @description 管理员鉴权服务
      */
     @Override
     public Result auth(HttpServletRequest request) {
         // 1. 获取管理员id
-        String token = request.getHeader(TOKEN_KEY_IN_HEADER);
+        String token = request.getHeader(ADMIN_TOKEN_KEY_IN_HEADER);
         // 1.1 验证token是否有效
-        Claims payload = Token.parse(token);
+        Claims payload = Token.parse(token, ADMIN_TOKEN_SECRET);
         if (payload == null) {
             return Result.fail(401, "无效Token", ErrorType.REDIRECT);
         }
+
         // 1.2 验证版本号是否有效
         String adminId = payload.get("id").toString();
         String tokenVersion = payload.get("version").toString();
-        String tokenKey = TOKEN_VERSION_KEY + adminId;
+        String tokenKey = ADMIN_TOKEN_VERSION_KEY + adminId;
         String tokenVersionInCache = stringRedisTemplate.opsForValue().get(tokenKey);
         if (!tokenVersion.equals(tokenVersionInCache)) {
             return Result.fail(401, "令牌已失效，请重新登录", ErrorType.REDIRECT);
@@ -114,20 +165,19 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
         Role role = roleService.getById(admin.getRoleid());
         log.info("roleid: {}", admin.getRoleid());
         log.info("role: {}", role);
-        log.info("list: {}", roleService.list());
         if (role == null) {
             return Result.fail(500, "服务器内部错误，请联系超级管理员后再试", ErrorType.REDIRECT);
         }
 
         // 2.3 通过角色ID查询相应的权限ID进行权限整合
-        String[] authList = StringUtils.split(role.getAuthlist(), ",");
+        String[] authList = StringUtils.split(role.getAuthList(), ",");
         List<String> authRoutes = new ArrayList<>();
         List<String> authSideBars = new ArrayList<>();
         if (authList != null) {
             for (String id : authList) {
                 RoleAuth authInfo = roleAuthService.getById(id);
-                authRoutes.add(authInfo.getAuthroute());
-                authSideBars.add(authInfo.getAuthsidebar());
+                authRoutes.add(authInfo.getAuthRoute());
+                authSideBars.add(authInfo.getAuthSideBar());
             }
         }
 
@@ -149,81 +199,64 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
      */
     @Override
     public Result getList(ListParams listParams) {
-        // 1. 获取请求参数
-        // gender, roleId, deptId, isDeleted
-        JSONObject adminFilter = JSONUtil.parseObj(listParams.getFilter());
-        // id, name, phone, createdTime, modifiedTime, current, pageSize
-        JSONObject adminParams = JSONUtil.parseObj(listParams.getParams());
-        // createdTime: "ascend", modifiedTime: "descend"
-        JSONObject adminSort = JSONUtil.parseObj(listParams.getSort());
+        JSONObject params = JSONUtil.parseObj(listParams.getParams());
+        JSONObject filter = JSONUtil.parseObj(listParams.getFilter());
+        JSONObject sort = JSONUtil.parseObj(listParams.getSort());
 
-        // 2. 封装数据
-        Admin admin = new Admin();
-        admin.setGender((String) adminFilter.get("gender"));
-        admin.setRoleid((String) adminFilter.get("roleId"));
-        admin.setDeptid((String) adminFilter.get("deptId"));
-        admin.setIsdeleted((String) adminFilter.get("isDeleted"));
-        admin.setId((String) adminParams.get("id"));
-        admin.setId((String) adminParams.get("name"));
-        admin.setId((String) adminParams.get("phone"));
+        String current = params.get("current").toString();
+        String pageSize = params.get("pageSize").toString();
+        String id = params.get("id").toString();
+        String name = params.get("name").toString();
+        String phone = params.get("phone").toString();
+        String createdTime = params.get("createdTime").toString();
+        String modifiedTime = params.get("modifiedTime").toString();
+        Object createdStartTime = JSONUtil.parseObj(createdTime).get("startTime");
+        Object createdEndTime = JSONUtil.parseObj(createdTime).get("endTime");
+        Object modifiedStartTime = JSONUtil.parseObj(modifiedTime).get("startTime");
+        Object modifiedEndTime = JSONUtil.parseObj(modifiedTime).get("endTime");
 
-        // 3. TODO 查询数据
-        Map<String, Object> adminWithMap = BeanUtil.beanToMap(admin);
-        QueryWrapper<Admin> adminWrapper = new QueryWrapper<>();
-        adminWrapper
-                .allEq(adminWithMap, false)
-                .orderBy(true, "ascend".equals(adminSort.get("createdTime")), "createdTime")
-                .orderBy(true, "ascend".equals(adminSort.get("modifiedTime")), "modifiedTime");
-        List<Admin> list = this.list(adminWrapper);
-        // 4. TODO 将查询的数据进行进一步封装
+        String roleId = filter.get("roleId").toString();
+        String deptId = filter.get("deptId").toString();
+        String gender = filter.get("gender").toString();
+        String isDeleted = filter.get("isDeleted").toString();
+
+        String sortCreatedTime = null;
+        if (!sort.isNull("createdTime")) {
+            sortCreatedTime = sort.get("createdTime").toString();
+        }
+        String sortModifiedTime = null;
+        if (!sort.isNull("modifiedTime")) {
+            sortModifiedTime = sort.get("modifiedTime").toString();
+        }
+
+        HashMap<String, String> listMap = new HashMap<>();
+//        listMap.put("current", current);
+//        listMap.put("pageSize", pageSize);
+        listMap.put("id", id);
+        listMap.put("phone", phone);
+        listMap.put("roleId", roleId);
+        listMap.put("deptId", deptId);
+        listMap.put("gender", gender);
+        listMap.put("isDeleted", isDeleted);
+//        listMap.put("sortCreatedTime", sortCreatedTime);
+//        listMap.put("sortModifiedTime", sortModifiedTime);
+
+        QueryWrapper<Admin> listWrapper = new QueryWrapper<>();
+        listWrapper
+                .allEq(listMap, true)
+                .like("name", name)
+//                .between(true, "createdTime", createdStartTime, createdEndTime)
+//                .between(true, "modifiedTime", modifiedStartTime, modifiedEndTime)
+                .orderBy(true, "ascend".equals(sortCreatedTime), "createdTime")
+                .orderBy(true, "ascend".equals(sortModifiedTime), "modifiedTime");
+        List<Admin> list = this.list(listWrapper);
         AdminListRes adminListRes = new AdminListRes();
+        adminListRes.setCurrent(Integer.parseInt(current));
+        adminListRes.setPageSize(Integer.parseInt(pageSize));
         adminListRes.setList(list);
-        adminListRes.setCurrent(Integer.parseInt((String) adminParams.get("current")));
         adminListRes.setTotal(list.size());
-        adminListRes.setPageSize(Integer.parseInt((String) adminParams.get("pageSize")));
-        // 5. TODO 返回数据
-        return Result.success("请求成功", adminListRes);
-    }
 
-    /**
-     * 使用账号密码登录
-     *
-     * @param response       HttpServletResponse
-     * @param adminLoginBody AdminLoginBody
-     * @return Result
-     */
-    private Result loginWithAccount(HttpServletResponse response, AdminLoginBody adminLoginBody) {
-        String id = adminLoginBody.getId();
-        String password = adminLoginBody.getPassword();
-        // 1. 判断账号是否为空
-        if (id == null) {
-            return Result.fail(400, "账号不能为空", ErrorType.NOTIFICATION);
-        }
-        Admin adminInfo = this.getById(id);
-        if (adminInfo == null) {
-            return Result.fail(400, "账号或密码错误，如果忘记密码，请联系管理员重置密码", ErrorType.NOTIFICATION);
-        }
-        // 2. 判断账号密码是否正确
-        if (!adminInfo.getId().equals(id) || !adminInfo.getPassword().equals(password)) {
-            return Result.fail(400, "账号或密码错误，如果忘记密码，请联系管理员重置密码", ErrorType.NOTIFICATION);
-        }
-        // 3. 生成Token
-        String token = saveTokenVersion(adminInfo, true, new DefaultClaims());
-        // 4. 添加Token响应头
-        response.addHeader(TOKEN_KEY_IN_HEADER, token);
-        // 5. 登录成功，返回管理员基本信息
-        return Result.success("登录成功", true);
-    }
-
-    /**
-     * 使用手机号登录
-     *
-     * @param response       HttpServletResponse
-     * @param adminLoginBody AdminLoginBody
-     * @return Result
-     */
-    public Result loginWithMobile(HttpServletResponse response, AdminLoginBody adminLoginBody) {
-        return null;
+        return Result.success("获取成功", adminListRes);
     }
 
     /**
@@ -238,11 +271,11 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
         // 当前token版本号
         String tokenVersion = isRegenerateVersion ? UUID.randomUUID().toString() : payload.get("version").toString();
         adminInfoInToken.put("version", tokenVersion);
-        String token = Token.create(adminInfoInToken);
+        String token = Token.create(adminInfoInToken, ADMIN_TOKEN_SECRET);
         // token 版本号key，为了防止token还在有效期内，但是密码已经被修改的情况
-        String tokenVersionKey = TOKEN_VERSION_KEY + adminInfo.getId();
+        String tokenVersionKey = ADMIN_TOKEN_VERSION_KEY + adminInfo.getId();
         stringRedisTemplate.opsForValue()
-                .set(tokenVersionKey, tokenVersion, TOKEN_TTL, TimeUnit.MILLISECONDS);
+                .set(tokenVersionKey, tokenVersion, ADMIN_TOKEN_TTL, TimeUnit.MILLISECONDS);
         log.info("token:{}", token);
         log.info("tokenVersion:{}", tokenVersion);
         return token;

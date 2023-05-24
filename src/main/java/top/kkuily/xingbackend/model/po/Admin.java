@@ -1,5 +1,6 @@
 package top.kkuily.xingbackend.model.po;
 
+import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -19,7 +20,7 @@ public class Admin implements Serializable {
     /**
      * 管理员账户ID（可用来登录）
      */
-    @TableId
+    @TableId(type = IdType.ASSIGN_UUID)
     private String id;
 
     /**
@@ -55,21 +56,21 @@ public class Admin implements Serializable {
     /**
      * 性别（0：女 1：男 2：未知）
      */
-    private String gender;
+    private int gender;
 
     /**
      * 是否逻辑删除(0：未删除 1：已删除)
      */
-    @TableLogic
-    private String isdeleted;
+    
+    private String isDeleted;
 
     /**
      * 创建时间
      */
-    private Date createdtime;
+    private Date createdTime;
 
     /**
      * 最后一次修改时间（ON UPDATE CURRENT_TIMESTAMP）
      */
-    private Date modifiedtime;
+    private Date modifiedTime;
 }

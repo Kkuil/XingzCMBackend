@@ -16,6 +16,9 @@
     <properties>
         <java.version>17</java.version>
         <jsonwebtoken.version>0.9.1</jsonwebtoken.version>
+        <kaptcha.version>2.3.2</kaptcha.version>
+        <hutool.version>5.8.11</hutool.version>
+        <alisms.version>2.0.23</alisms.version>
     </properties>
     <dependencies>
         <!-- redis 启动类 -->
@@ -74,7 +77,19 @@
         <dependency>
             <groupId>cn.hutool</groupId>
             <artifactId>hutool-all</artifactId>
-            <version>5.8.11</version>
+            <version>${hutool.version}</version>
+        </dependency>
+        <!--图形验证码生成工具库-->
+        <dependency>
+            <groupId>com.github.penggle</groupId>
+            <artifactId>kaptcha</artifactId>
+            <version>${kaptcha.version}</version>
+        </dependency>
+        <!-- 阿里云短信服务 -->
+        <dependency>
+            <groupId>com.aliyun</groupId>
+            <artifactId>alibabacloud-dysmsapi20170525</artifactId>
+            <version>${alisms.version}</version>
         </dependency>
 
     </dependencies>

@@ -15,9 +15,9 @@
             <result property="tags" column="tags" jdbcType="VARCHAR"/>
             <result property="avatar" column="avatar" jdbcType="VARCHAR"/>
             <result property="isvip" column="isVip" jdbcType="OTHER"/>
-            <result property="isdeleted" column="isDeleted" jdbcType="OTHER"/>
-            <result property="createdtime" column="createdTime" jdbcType="TIMESTAMP"/>
-            <result property="modifiedtime" column="modifiedTime" jdbcType="TIMESTAMP"/>
+            <result property="isDeleted" column="isDeleted" jdbcType="OTHER"/>
+            <result property="createdTime" column="createdTime" jdbcType="TIMESTAMP"/>
+            <result property="modifiedTime" column="modifiedTime" jdbcType="TIMESTAMP"/>
     </resultMap>
 
     <sql id="Base_Column_List">

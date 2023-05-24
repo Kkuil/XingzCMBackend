@@ -14,8 +14,8 @@ USE xingz_cm;
 
 -- 用户表（user）
 CREATE TABLE IF NOT EXISTS user(
-	id VARCHAR(10) NOT NULL UNIQUE COMMENT "用户ID",
-	username VARCHAR(17) NOT NULL UNIQUE COMMENT "用户名",
+	id VARCHAR(36) UNIQUE COMMENT "用户ID",
+	username VARCHAR(17) UNIQUE COMMENT "用户名",
 	password VARCHAR(30) NOT NULL DEFAULT "xzwz_cm_123456" COMMENT "密码",
 	gender ENUM("0", "1", "2") NOT NULL DEFAULT "2" COMMENT "性别（0：女 1：男 2：未知）",
 	birthday DATE COMMENT "生日（1970-01-01）",
@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS user(
 
 -- 用户文章信息表（user_article）
 CREATE TABLE IF NOT EXISTS user_article(
-	id VARCHAR(10) NOT NULL UNIQUE COMMENT "用户ID",
+	id VARCHAR(36) COMMENT "用户ID",
 	published JSON COMMENT "已发布文章数（例如：[1, 2, 3]记录了已发布的文章的ID）",
 	liked JSON COMMENT "点赞信息（例如：[1, 2, 3]记录了点赞了的文章的ID）",
 	collected JSON COMMENT "收藏信息（例如：[1, 2, 3]记录了收藏了的文章的ID）",
@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS user_article(
 
 -- 用户星分表（user_rank）
 CREATE TABLE IF NOT EXISTS user_rank(
-	id VARCHAR(10) NOT NULL UNIQUE COMMENT "用户ID",
+	id VARCHAR(36) COMMENT "用户ID",
 	points INT NOT NULL DEFAULT 0 COMMENT "星分大小（每100星分为一等级）",
 	isDeleted ENUM("0", "1") DEFAULT "0" COMMENT "是否逻辑删除(0：未删除 1：已删除)",
 	createdTime DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT "创建时间",
@@ -56,11 +56,11 @@ CREATE TABLE IF NOT EXISTS user_rank(
 
 -- 管理员信息表（admin）
 CREATE TABLE IF NOT EXISTS admin(
-	id VARCHAR(10) NOT NULL UNIQUE COMMENT "管理员账户ID（可用来登录）",
+	id VARCHAR(36) COMMENT "管理员账户ID（可用来登录）",
 	name VARCHAR(30) NOT NULL COMMENT "管理员名称",
 	password VARCHAR(100) DEFAULT "xzwz_qwe123456" NOT NULL COMMENT "管理员密码",
 	roleId VARCHAR(30) NOT NULL COMMENT "管理员身份ID",
-	deptId VARCHAR(10) NOT NULL COMMENT "部门ID",
+	deptid VARCHAR(36) NOT NULL COMMENT "部门ID",
 	phone VARCHAR(11) NOT NULL UNIQUE COMMENT "手机号（例如：15712345674）",
 	avatar VARCHAR(512) NOT NULL DEFAULT "https://bucket.oss.kkuil/default_avatar.jpg" COMMENT "默认头像",
 	gender ENUM("0", "1", "2") NOT NULL DEFAULT "2" COMMENT "性别（0：女 1：男 2：未知）",
@@ -74,7 +74,7 @@ CREATE TABLE IF NOT EXISTS admin(
 
 -- 角色信息（role）
 CREATE TABLE IF NOT EXISTS role(
-	id VARCHAR(10) NOT NULL UNIQUE COMMENT "角色ID",
+	id VARCHAR(36) COMMENT "角色ID",
 	roleName VARCHAR(30) NOT NULL UNIQUE DEFAULT "c_admin" COMMENT "角色名",
 	authList VARCHAR(1024) COMMENT "权限列表",
 	description VARCHAR(255) DEFAULT "" COMMENT "角色相关描述",
@@ -86,7 +86,7 @@ CREATE TABLE IF NOT EXISTS role(
 
 -- 角色权限信息 （role_auth）
 CREATE TABLE IF NOT EXISTS role_auth(
-	id INT NOT NULL UNIQUE AUTO_INCREMENT COMMENT "权限ID（1000以上的整数）",
+	id INT AUTO_INCREMENT COMMENT "权限ID（1000以上的整数）",
 	authName VARCHAR(30) NOT NULL UNIQUE COMMENT "权限名称",
 	authRoute VARCHAR(100) NOT NULL COMMENT "与权限所绑定的路由（例如：/user-manage/user-list）",
 	authSideBar VARCHAR(100) NOT NULL COMMENT "与权限所绑定的侧边栏（例如：user-manage:user-list）",
@@ -99,9 +99,9 @@ CREATE TABLE IF NOT EXISTS role_auth(
 
 -- 部门信息（department）
 CREATE TABLE IF NOT EXISTS department(
-	id VARCHAR(10) NOT NULL UNIQUE COMMENT "部门ID",
+	id VARCHAR(36) COMMENT "部门ID",
 	deptName VARCHAR(30) NOT NULL COMMENT "部门名称",
-	managerId VARCHAR(10) NOT NULL COMMENT "管理员ID",
+	managerid VARCHAR(36) NOT NULL COMMENT "管理员ID",
 	locationId INT NOT NULL COMMENT "地区ID",
 	isDeleted ENUM("0", "1") DEFAULT "0" COMMENT "是否逻辑删除(0：未删除 1：已删除)",
 	createdTime DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT "创建时间",
@@ -112,7 +112,7 @@ CREATE TABLE IF NOT EXISTS department(
 
 -- 地区信息（location）
 CREATE TABLE IF NOT EXISTS location(
-	id INT NOT NULL UNIQUE AUTO_INCREMENT COMMENT "地区ID",
+	id INT AUTO_INCREMENT COMMENT "地区ID",
 	street VARCHAR(255) NOT NULL DEFAULT "中关村" COMMENT "街道",
 	city VARCHAR(128) NOT NULL DEFAULT "北京" COMMENT "城市",
 	isDeleted ENUM("0", "1") DEFAULT "0" COMMENT "是否逻辑删除(0：未删除 1：已删除)",
@@ -124,7 +124,7 @@ CREATE TABLE IF NOT EXISTS location(
 
 -- 文章信息（article）
 CREATE TABLE IF NOT EXISTS article(
-	id VARCHAR(10) NOT NULL UNIQUE COMMENT "文章ID",
+	id VARCHAR(36) COMMENT "文章ID",
 	title VARCHAR(100) NOT NULL DEFAULT "星知学习频道" COMMENT "标题",
 	content TEXT NOT NULL COMMENT "内容",
 	remark TINYTEXT COMMENT "评论信息（例如：'{id: '1', comment: '欢迎', 'createdTime': '1970-01-01 00:00:00', 'modifiedTime': '1970-01-01 00:00:00'}'）",
@@ -143,7 +143,7 @@ CREATE TABLE IF NOT EXISTS article(
 
 -- 文章状态映射信息（article_status）
 CREATE TABLE IF NOT EXISTS article_status(
-	id INT NOT NULL UNIQUE AUTO_INCREMENT COMMENT "文章状态ID",
+	id INT AUTO_INCREMENT COMMENT "文章状态ID",
 	statusName VARCHAR(10) NOT NULL UNIQUE COMMENT "状态名",
 	isDeleted ENUM("0", "1") DEFAULT "0" COMMENT "是否逻辑删除(0：未删除 1：已删除)",
 	createdTime DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT "创建时间",
@@ -153,7 +153,7 @@ CREATE TABLE IF NOT EXISTS article_status(
 
 -- 标签信息
 CREATE TABLE IF NOT EXISTS tag(
-	id INT NOT NULL UNIQUE AUTO_INCREMENT COMMENT "标签ID",
+	id INT AUTO_INCREMENT COMMENT "标签ID",
 	name VARCHAR(20) NOT NULL UNIQUE COMMENT "标签名",
 	isDeleted ENUM("0", "1") DEFAULT "0" COMMENT "是否逻辑删除(0：未删除 1：已删除)",
 	createdTime DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT "创建时间",

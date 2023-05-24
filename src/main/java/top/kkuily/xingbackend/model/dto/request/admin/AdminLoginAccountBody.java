@@ -1,4 +1,4 @@
-package top.kkuily.xingbackend.model.dto.request;
+package top.kkuily.xingbackend.model.dto.request.admin;
 
 import lombok.Data;
 
@@ -7,7 +7,7 @@ import lombok.Data;
  * @description 管理员登录接受的参数
  */
 @Data
-public class AdminLoginBody {
+public class AdminLoginAccountBody {
     /**
      * 账户id
      */

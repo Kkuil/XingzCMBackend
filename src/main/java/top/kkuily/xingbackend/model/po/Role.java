@@ -24,12 +24,12 @@ public class Role {
     /**
      * 角色名
      */
-    private String rolename;
+    private String roleName;
 
     /**
      * 权限列表
      */
-    private String authlist;
+    private String authList;
 
     /**
      * 角色相关描述
@@ -39,16 +39,16 @@ public class Role {
     /**
      * 是否逻辑删除(0：未删除 1：已删除)
      */
-    @TableLogic
-    private Object isdeleted;
+    
+    private String isDeleted;
 
     /**
      * 创建时间
      */
-    private Date createdtime;
+    private Date createdTime;
 
     /**
      * 最后一次修改时间（ON UPDATE CURRENT_TIMESTAMP）
      */
-    private Date modifiedtime;
+    private Date modifiedTime;
 }

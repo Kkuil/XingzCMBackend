@@ -9,9 +9,9 @@
             <result property="deptname" column="deptName" jdbcType="VARCHAR"/>
             <result property="managerid" column="managerId" jdbcType="VARCHAR"/>
             <result property="locationid" column="locationId" jdbcType="INTEGER"/>
-            <result property="isdeleted" column="isDeleted" jdbcType="OTHER"/>
-            <result property="createdtime" column="createdTime" jdbcType="TIMESTAMP"/>
-            <result property="modifiedtime" column="modifiedTime" jdbcType="TIMESTAMP"/>
+            <result property="isDeleted" column="isDeleted" jdbcType="OTHER"/>
+            <result property="createdTime" column="createdTime" jdbcType="TIMESTAMP"/>
+            <result property="modifiedTime" column="modifiedTime" jdbcType="TIMESTAMP"/>
     </resultMap>
 
     <sql id="Base_Column_List">

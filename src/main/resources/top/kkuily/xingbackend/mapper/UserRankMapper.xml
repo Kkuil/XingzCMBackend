@@ -7,9 +7,9 @@
     <resultMap id="BaseResultMap" type="top.kkuily.xingbackend.model.po.UserRank">
             <id property="id" column="id" jdbcType="VARCHAR"/>
             <result property="points" column="points" jdbcType="INTEGER"/>
-            <result property="isdeleted" column="isDeleted" jdbcType="OTHER"/>
-            <result property="createdtime" column="createdTime" jdbcType="TIMESTAMP"/>
-            <result property="modifiedtime" column="modifiedTime" jdbcType="TIMESTAMP"/>
+            <result property="isDeleted" column="isDeleted" jdbcType="OTHER"/>
+            <result property="createdTime" column="createdTime" jdbcType="TIMESTAMP"/>
+            <result property="modifiedTime" column="modifiedTime" jdbcType="TIMESTAMP"/>
     </resultMap>
 
     <sql id="Base_Column_List">

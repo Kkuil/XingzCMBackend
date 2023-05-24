@@ -6,7 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.Date;
 import java.util.HashMap;
 
-import static top.kkuily.xingbackend.constant.Login.*;
+import static top.kkuily.xingbackend.constant.admin.Login.*;
 
 /**
  * @author 小K
@@ -22,12 +22,16 @@ public class Token {
      * @param data HashMap<String, Object>
      * @return String
      */
-    public static String create(HashMap<String, Object> data) {
-        return Jwts.builder()
-                .signWith(SignatureAlgorithm.HS256, "xingz_cm_123456")
-                .setClaims(data)
-                .setExpiration(new Date(System.currentTimeMillis() + TOKEN_TTL))
-                .compact();
+    public static String create(HashMap<String, Object> data, String secret) {
+        try {
+            return Jwts.builder()
+                    .signWith(SignatureAlgorithm.HS256, secret)
+                    .setClaims(data)
+                    .setExpiration(new Date(System.currentTimeMillis() + ADMIN_TOKEN_TTL))
+                    .compact();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -36,16 +40,15 @@ public class Token {
      * @param token String
      * @return String
      */
-    public static Claims parse(String token) {
+    public static Claims parse(String token, String secret) {
         try {
             return Jwts.parser()
-                    .setSigningKey(TOKEN_SECRET)
+                    .setSigningKey(secret)
                     .parseClaimsJws(token)
                     .getBody();
-        } catch (ExpiredJwtException | IllegalArgumentException | SignatureException | MalformedJwtException |
-                 UnsupportedJwtException e) {
-            e.printStackTrace();
-            return null;
+        } catch (ExpiredJwtException | UnsupportedJwtException | MalformedJwtException | SignatureException |
+                 IllegalArgumentException e) {
+            throw new RuntimeException(e);
         }
     }
 }

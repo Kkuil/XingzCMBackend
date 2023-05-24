@@ -1,4 +1,4 @@
-package top.kkuily.xingbackend.model.dto.request;
+package top.kkuily.xingbackend.model.dto.request.admin;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.Data;
@@ -61,6 +61,6 @@ public class AdminAuthInfo {
         this.setPhone(admin.getPhone());
         this.setAvatar(admin.getAvatar());
         this.setGender(admin.getGender());
-        this.setRolename(role.getRolename());
+        this.setRolename(role.getRoleName());
     }
 }

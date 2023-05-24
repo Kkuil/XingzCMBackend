@@ -9,9 +9,9 @@
         <id property="rolename" column="roleName" jdbcType="VARCHAR"/>
         <result property="authlist" column="authList" jdbcType="OTHER"/>
         <result property="description" column="description" jdbcType="VARCHAR"/>
-        <result property="isdeleted" column="isDeleted" jdbcType="OTHER"/>
-        <result property="createdtime" column="createdTime" jdbcType="TIMESTAMP"/>
-        <result property="modifiedtime" column="modifiedTime" jdbcType="TIMESTAMP"/>
+        <result property="isDeleted" column="isDeleted" jdbcType="OTHER"/>
+        <result property="createdTime" column="createdTime" jdbcType="TIMESTAMP"/>
+        <result property="modifiedTime" column="modifiedTime" jdbcType="TIMESTAMP"/>
     </resultMap>
 
     <sql id="Base_Column_List">
