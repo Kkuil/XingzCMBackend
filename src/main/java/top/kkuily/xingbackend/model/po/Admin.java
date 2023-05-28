@@ -9,6 +9,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 import lombok.Data;
+import top.kkuily.xingbackend.model.enums.Gender;
 
 /**
  * @author 小K
@@ -36,12 +37,12 @@ public class Admin implements Serializable {
     /**
      * 管理员身份ID
      */
-    private String roleid;
+    private String roleId;
 
     /**
      * 部门ID
      */
-    private String deptid;
+    private String deptId;
 
     /**
      * 手机号（例如：15712345674）

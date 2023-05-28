@@ -19,6 +19,7 @@
         <kaptcha.version>2.3.2</kaptcha.version>
         <hutool.version>5.8.11</hutool.version>
         <alisms.version>2.0.23</alisms.version>
+        <knife4j.version>3.0.3</knife4j.version>
     </properties>
     <dependencies>
         <!-- redis 启动类 -->
@@ -90,6 +91,22 @@
             <groupId>com.aliyun</groupId>
             <artifactId>alibabacloud-dysmsapi20170525</artifactId>
             <version>${alisms.version}</version>
+        </dependency>
+        <!-- https://doc.xiaominfo.com/knife4j/documentation/get_start.html-->
+        <!-- 接口文档 -->
+        <dependency>
+            <groupId>com.github.xiaoymin</groupId>
+            <artifactId>knife4j-spring-boot-starter</artifactId>
+            <version>${knife4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <!-- aop-starter -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
         </dependency>
 
     </dependencies>

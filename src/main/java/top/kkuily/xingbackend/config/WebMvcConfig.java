@@ -30,7 +30,8 @@ public class WebMvcConfig implements WebMvcConfigurer {
         // 全局拦截器
         registry
                 .addInterceptor(globalInterceptor)
-                .addPathPatterns("/**/*");
+                .addPathPatterns("/**/*")
+                .order(0);
         // 管理员信息拦截器
         registry
                 .addInterceptor(adminTokenInterceptor)
@@ -40,7 +41,8 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .excludePathPatterns(
                         "/xingz_cm/admin-login-account",
                         "/xingz_cm/admin-login-phone"
-                );
+                )
+                .order(1);
         // 用户信息拦截器
         registry
                 .addInterceptor(userTokenInterceptor)
@@ -52,6 +54,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
                         "/xingz_cm/user-login-phone",
                         "/xingz_cm/user-registry",
                         "/xingz_cm/user-forget-pwd"
-                );
+                )
+                .order(1);
     }
 }

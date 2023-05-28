@@ -35,7 +35,7 @@ public class User implements Serializable {
     /**
      * 性别（0：女 1：男 2：未知）
      */
-    private Gender gender;
+    private int gender;
 
     /**
      * 生日（1970-01-01）
@@ -53,9 +53,9 @@ public class User implements Serializable {
     private String email;
 
     /**
-     * 标签（例如：['前端'，'后端']）
+     * 标签（例如：[1，2]）
      */
-    private String tags;
+    private String tagIds;
 
     /**
      * 默认头像

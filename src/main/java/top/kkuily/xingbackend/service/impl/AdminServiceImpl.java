@@ -1,9 +1,8 @@
 package top.kkuily.xingbackend.service.impl;
 
 import cn.hutool.core.lang.UUID;
-import cn.hutool.json.JSONObject;
-import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.impl.DefaultClaims;
@@ -14,25 +13,27 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.util.StringUtils;
 import top.kkuily.xingbackend.model.dto.request.admin.AdminAuthInfo;
+import top.kkuily.xingbackend.model.dto.response.ListRes;
+import top.kkuily.xingbackend.model.vo.ListParamsVo;
 import top.kkuily.xingbackend.model.dto.request.admin.AdminLoginAccountBody;
 import top.kkuily.xingbackend.model.dto.request.admin.AdminLoginPhoneBody;
-import top.kkuily.xingbackend.model.dto.request.commons.ListParams;
-import top.kkuily.xingbackend.model.dto.response.admin.AdminListRes;
 import top.kkuily.xingbackend.model.po.Admin;
 import top.kkuily.xingbackend.model.po.Role;
 import top.kkuily.xingbackend.model.po.RoleAuth;
+import top.kkuily.xingbackend.model.vo.admin.list.AdminListFilterVo;
+import top.kkuily.xingbackend.model.vo.ListPageVo;
+import top.kkuily.xingbackend.model.vo.admin.list.AdminListParamsVo;
+import top.kkuily.xingbackend.model.vo.admin.list.AdminListSortVo;
 import top.kkuily.xingbackend.service.IAdminService;
-import top.kkuily.xingbackend.service.IRoleAuthService;
-import top.kkuily.xingbackend.service.IRoleService;
+import top.kkuily.xingbackend.mapper.RoleAuthMapper;
+import top.kkuily.xingbackend.mapper.RoleMapper;
 import top.kkuily.xingbackend.mapper.AdminMapper;
 import org.springframework.stereotype.Service;
 import top.kkuily.xingbackend.utils.ErrorType;
 import top.kkuily.xingbackend.utils.Result;
 import top.kkuily.xingbackend.utils.Token;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -50,16 +51,19 @@ import static top.kkuily.xingbackend.constant.commons.Api.PHONE_REG;
 public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements IAdminService {
 
     @Resource
-    private IRoleService roleService;
+    private RoleMapper roleMapper;
 
     @Resource
-    private IRoleAuthService roleAuthService;
+    private AdminMapper adminMapper;
+
+    @Resource
+    private RoleAuthMapper roleAuthMapper;
 
     @Resource
     private StringRedisTemplate stringRedisTemplate;
 
     /**
-     * 管理员账号登录服务
+     * @description 管理员账号登录服务
      *
      * @param response              HttpServletResponse
      * @param adminLoginAccountBody AdminLoginAccountBody
@@ -90,10 +94,10 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
     }
 
     /**
+     * @description 使用手机号登录
      * @param response            HttpServletResponse
      * @param adminLoginPhoneBody AdminLoginPhoneBody
      * @return Result
-     * @description 使用手机号登录
      */
     @Override
     public Result loginWithPhone(HttpServletResponse response, AdminLoginPhoneBody adminLoginPhoneBody) {
@@ -131,9 +135,9 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
     }
 
     /**
+     * @description 管理员鉴权服务
      * @param request HttpServletRequest
      * @return Result
-     * @description 管理员鉴权服务
      */
     @Override
     public Result auth(HttpServletRequest request) {
@@ -162,8 +166,8 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
         }
 
         // 2.2 通过管理员角色ID进行查询角色信息
-        Role role = roleService.getById(admin.getRoleid());
-        log.info("roleid: {}", admin.getRoleid());
+        Role role = roleMapper.selectById(admin.getRoleId());
+        log.info("roleid: {}", admin.getRoleId());
         log.info("role: {}", role);
         if (role == null) {
             return Result.fail(500, "服务器内部错误，请联系超级管理员后再试", ErrorType.REDIRECT);
@@ -175,7 +179,7 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
         List<String> authSideBars = new ArrayList<>();
         if (authList != null) {
             for (String id : authList) {
-                RoleAuth authInfo = roleAuthService.getById(id);
+                RoleAuth authInfo = roleAuthMapper.selectById(id);
                 authRoutes.add(authInfo.getAuthRoute());
                 authSideBars.add(authInfo.getAuthSideBar());
             }
@@ -192,70 +196,91 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
     }
 
     /**
-     * @param listParams AdminListParams
+     * @param adminListParams ListParamsVo
      * @return Result
      * @author 小K
      * @description 分页查询
      */
     @Override
-    public Result getList(ListParams listParams) {
-        JSONObject params = JSONUtil.parseObj(listParams.getParams());
-        JSONObject filter = JSONUtil.parseObj(listParams.getFilter());
-        JSONObject sort = JSONUtil.parseObj(listParams.getSort());
+    public Result getList(ListParamsVo<AdminListParamsVo, AdminListSortVo, AdminListFilterVo> adminListParams) {
+        // 1. 获取数据
+        AdminListParamsVo params = adminListParams.getParams();
+        AdminListSortVo sort = adminListParams.getSort();
+        AdminListFilterVo filter = adminListParams.getFilter();
+        ListPageVo page = adminListParams.getPage();
 
-        String current = params.get("current").toString();
-        String pageSize = params.get("pageSize").toString();
-        String id = params.get("id").toString();
-        String name = params.get("name").toString();
-        String phone = params.get("phone").toString();
-        String createdTime = params.get("createdTime").toString();
-        String modifiedTime = params.get("modifiedTime").toString();
-        Object createdStartTime = JSONUtil.parseObj(createdTime).get("startTime");
-        Object createdEndTime = JSONUtil.parseObj(createdTime).get("endTime");
-        Object modifiedStartTime = JSONUtil.parseObj(modifiedTime).get("startTime");
-        Object modifiedEndTime = JSONUtil.parseObj(modifiedTime).get("endTime");
+        // 2. 将bean转化为map对象
+        Map<String, Object> paramsMap = adminListParams.getParams().beanToMapWithLimitField();
 
-        String roleId = filter.get("roleId").toString();
-        String deptId = filter.get("deptId").toString();
-        String gender = filter.get("gender").toString();
-        String isDeleted = filter.get("isDeleted").toString();
-
-        String sortCreatedTime = null;
-        if (!sort.isNull("createdTime")) {
-            sortCreatedTime = sort.get("createdTime").toString();
+        // 3. 查询数据
+        QueryWrapper<Admin> adminListQuery = new QueryWrapper<>();
+        adminListQuery
+                .allEq(paramsMap, false)
+                .orderBy(true, "ascend".equals(sort.getCreatedTime()), "createdTime")
+                .orderBy(true, "ascend".equals(sort.getModifiedTime()), "modifiedTime");
+        // 3.1 因为前端的小Bug，传递的数据有问题，在这里提前做判断，增强代码的健壮性
+        if(filter.getGender() != null) {
+            adminListQuery.in(true, "gender", Arrays.toString(filter.getGender()));
         }
-        String sortModifiedTime = null;
-        if (!sort.isNull("modifiedTime")) {
-            sortModifiedTime = sort.get("modifiedTime").toString();
+        if(filter.getRoleId() != null) {
+            adminListQuery.in(true, "roleId", Arrays.toString(filter.getRoleId()));
+        }
+        if(filter.getDeptId() != null) {
+            adminListQuery.in(true, "deptId", Arrays.toString(filter.getDeptId()));
+        }
+        if(filter.getIsDeleted() != null) {
+            adminListQuery.in(true, "isDeleted", Arrays.toString(filter.getIsDeleted()));
+        }
+        // 3.2 因为前端的小Bug，传递的数据有问题，在这里提前做判断，增强代码的健壮性
+        if (
+                params.getModifiedTime() != null
+                        &&
+                        !("{".equals(params.getCreatedTime().getStartTime()))
+                        &&
+                        !("\"".equals(params.getCreatedTime().getEndTime()))
+        ) {
+            adminListQuery
+                    .between(
+                            true,
+                            "createdTime",
+                            params.getCreatedTime().getStartTime(),
+                            params.getCreatedTime().getEndTime()
+                    );
+        }
+        if (
+                params.getModifiedTime() != null
+                        &&
+                        !("{".equals(params.getModifiedTime().getStartTime()))
+                        &&
+                        !("\"".equals(params.getModifiedTime().getEndTime()))
+        ) {
+            adminListQuery
+                    .between(
+                            true,
+                            "modifiedTime",
+                            params.getModifiedTime().getStartTime(),
+                            params.getModifiedTime().getEndTime()
+                    );
         }
 
-        HashMap<String, String> listMap = new HashMap<>();
-//        listMap.put("current", current);
-//        listMap.put("pageSize", pageSize);
-        listMap.put("id", id);
-        listMap.put("phone", phone);
-        listMap.put("roleId", roleId);
-        listMap.put("deptId", deptId);
-        listMap.put("gender", gender);
-        listMap.put("isDeleted", isDeleted);
-//        listMap.put("sortCreatedTime", sortCreatedTime);
-//        listMap.put("sortModifiedTime", sortModifiedTime);
+        // 4. 分页查询
+        Page<Admin> adminPageC = new Page<>(page.getCurrent(), page.getPageSize());
+        // 4.1 查询未分页时的数据总数
+        List<Admin> adminNotPage = adminMapper.selectList(adminListQuery);
+        // 4.2 查询分页后的数据
+        Page<Admin> adminPage = adminMapper.selectPage(adminPageC, adminListQuery);
 
-        QueryWrapper<Admin> listWrapper = new QueryWrapper<>();
-        listWrapper
-                .allEq(listMap, true)
-                .like("name", name)
-//                .between(true, "createdTime", createdStartTime, createdEndTime)
-//                .between(true, "modifiedTime", modifiedStartTime, modifiedEndTime)
-                .orderBy(true, "ascend".equals(sortCreatedTime), "createdTime")
-                .orderBy(true, "ascend".equals(sortModifiedTime), "modifiedTime");
-        List<Admin> list = this.list(listWrapper);
-        AdminListRes adminListRes = new AdminListRes();
-        adminListRes.setCurrent(Integer.parseInt(current));
-        adminListRes.setPageSize(Integer.parseInt(pageSize));
-        adminListRes.setList(list);
-        adminListRes.setTotal(list.size());
+        log.info("current: {}", page.getCurrent());
+        log.info("pageSize: {}", page.getPageSize());
+        log.info("total: {}", adminNotPage.size());
+        log.info("admins: {}", adminPage.getRecords());
 
+        // 5. 封装数据
+        ListRes<Admin> adminListRes = new ListRes<>();
+        adminListRes.setCurrent(page.getCurrent());
+        adminListRes.setPageSize(page.getPageSize());
+        adminListRes.setList(adminPage.getRecords());
+        adminListRes.setTotal(adminNotPage.size());
         return Result.success("获取成功", adminListRes);
     }
 

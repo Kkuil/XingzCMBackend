@@ -2,11 +2,14 @@ package top.kkuily.xingbackend.service;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import top.kkuily.xingbackend.model.vo.ListParamsVo;
 import top.kkuily.xingbackend.model.dto.request.admin.AdminLoginPhoneBody;
-import top.kkuily.xingbackend.model.dto.request.commons.ListParams;
 import top.kkuily.xingbackend.model.dto.request.admin.AdminLoginAccountBody;
 import top.kkuily.xingbackend.model.po.Admin;
 import com.baomidou.mybatisplus.extension.service.IService;
+import top.kkuily.xingbackend.model.vo.admin.list.AdminListFilterVo;
+import top.kkuily.xingbackend.model.vo.admin.list.AdminListParamsVo;
+import top.kkuily.xingbackend.model.vo.admin.list.AdminListSortVo;
 import top.kkuily.xingbackend.utils.Result;
 
 /**
@@ -17,34 +20,34 @@ import top.kkuily.xingbackend.utils.Result;
 public interface IAdminService extends IService<Admin> {
 
     /**
-     * @author 小K
      * @description 管理员账号登录服务
+     * @author 小K
      * @param adminLoginAccountBody AdminLoginAccountBody
      * @return Result
      */
     Result loginWithAccount(HttpServletResponse response, AdminLoginAccountBody adminLoginAccountBody);
 
     /**
-     * @author 小K
      * @description 管理员手机号登录服务
+     * @author 小K
      * @param adminLoginPhoneBody AdminLoginPhoneBody
      * @return Result
      */
     Result loginWithPhone(HttpServletResponse response, AdminLoginPhoneBody adminLoginPhoneBody);
 
     /**
-     * @author 小K
      * @description 管理员鉴权服务
+     * @author 小K
      * @param response HttpServletRequest
      * @return Result
      */
     Result auth(HttpServletRequest response);
 
     /**
-     * @author 小K
      * @description 分页查询
-     * @param adminListParams AdminListParams
+     * @author 小K
+     * @param adminListParams ListParamsVo
      * @return Result
      */
-    Result getList(ListParams adminListParams);
+    Result getList(ListParamsVo<AdminListParamsVo, AdminListSortVo, AdminListFilterVo> adminListParams);
 }

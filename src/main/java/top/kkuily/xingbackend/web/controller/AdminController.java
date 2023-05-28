@@ -1,15 +1,19 @@
 package top.kkuily.xingbackend.web.controller;
 
+import cn.hutool.json.JSONUtil;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.*;
-import top.kkuily.xingbackend.constant.commons.Api;
+import top.kkuily.xingbackend.model.vo.ListParamsVo;
 import top.kkuily.xingbackend.model.dto.request.admin.AdminLoginAccountBody;
 import top.kkuily.xingbackend.model.dto.request.admin.AdminLoginPhoneBody;
-import top.kkuily.xingbackend.model.dto.request.commons.ListParams;
+import top.kkuily.xingbackend.model.vo.admin.list.AdminListFilterVo;
+import top.kkuily.xingbackend.model.vo.ListPageVo;
+import top.kkuily.xingbackend.model.vo.admin.list.AdminListParamsVo;
+import top.kkuily.xingbackend.model.vo.admin.list.AdminListSortVo;
 import top.kkuily.xingbackend.service.IAdminService;
 import top.kkuily.xingbackend.utils.ErrorType;
 import top.kkuily.xingbackend.utils.Result;
@@ -28,7 +32,6 @@ import static top.kkuily.xingbackend.constant.commons.Api.PHONE_REG;
  * @description 管理员相关接口
  */
 @RestController
-@RequestMapping(Api.REQUEST_PREFIX)
 @Slf4j
 public class AdminController {
     @Resource
@@ -38,7 +41,7 @@ public class AdminController {
     private StringRedisTemplate stringRedisTemplate;
 
     /**
-     * 管理员账号登录接口
+     * @description 管理员账号登录接口
      *
      * @param response              HttpServletResponse
      * @param adminLoginAccountBody AdminLoginAccountBody
@@ -50,7 +53,7 @@ public class AdminController {
     }
 
     /**
-     * 管理员手机号登录接口
+     * @description 管理员手机号登录接口
      *
      * @param response            HttpServletResponse
      * @param adminLoginPhoneBody AdminLoginPhoneBody
@@ -62,10 +65,10 @@ public class AdminController {
     }
 
     /**
+     * @description 发送验证码
      * @param phone phone
      * @return Result
      * @author 小K
-     * @description 发送验证码
      */
     @GetMapping("admin-sms")
     public Result getSmsCaptcha(String phone) throws ExecutionException, InterruptedException {
@@ -90,7 +93,7 @@ public class AdminController {
     }
 
     /**
-     * 权限校验端口
+     * @description 权限校验端口
      *
      * @param request HttpServletRequest
      * @return Result
@@ -101,16 +104,20 @@ public class AdminController {
     }
 
     /**
-     * 分页查询接口
+     * @description 管理员分页查询接口
      *
-     * @param params Object
-     * @param sort   Object
-     * @param filter Object
+     * @param params AdminListParamsVo
+     * @param sort   AdminListSortVo
      * @return Result
      */
     @GetMapping("admin")
-    public Result getList(String params, String sort, String filter) {
-        ListParams adminListParams = new ListParams(params, sort, filter);
-        return adminService.getList(adminListParams);
+    public Result getList(String params, String sort, String filter, String page) {
+        log.info("page: {}", params);
+        AdminListParamsVo paramsBean = JSONUtil.toBean(params, AdminListParamsVo.class);
+        AdminListSortVo sortBean = JSONUtil.toBean(sort, AdminListSortVo.class);
+        AdminListFilterVo filterBean = JSONUtil.toBean(filter, AdminListFilterVo.class);
+        ListPageVo pageBean = JSONUtil.toBean(page, ListPageVo.class);
+        ListParamsVo<AdminListParamsVo, AdminListSortVo, AdminListFilterVo> listParams = new ListParamsVo<>(paramsBean, sortBean, filterBean, pageBean);
+        return adminService.getList(listParams);
     }
 }

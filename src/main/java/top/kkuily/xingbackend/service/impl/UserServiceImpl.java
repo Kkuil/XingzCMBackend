@@ -2,6 +2,7 @@ package top.kkuily.xingbackend.service.impl;
 
 import cn.hutool.core.lang.UUID;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.impl.DefaultClaims;
@@ -10,10 +11,18 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import top.kkuily.xingbackend.model.dto.request.commons.ListParams;
+import top.kkuily.xingbackend.model.dto.request.admin.AdminLoginPhoneBody;
 import top.kkuily.xingbackend.model.dto.request.user.UserLoginAccountBody;
 import top.kkuily.xingbackend.model.dto.request.user.UserLoginPhoneBody;
+import top.kkuily.xingbackend.model.dto.response.ListRes;
+import top.kkuily.xingbackend.model.po.Admin;
 import top.kkuily.xingbackend.model.po.User;
+import top.kkuily.xingbackend.model.vo.ListPageVo;
+import top.kkuily.xingbackend.model.vo.ListParamsVo;
+import top.kkuily.xingbackend.model.vo.user.list.UserListFilterVo;
+import top.kkuily.xingbackend.model.vo.user.list.UserListParamsVo;
+import top.kkuily.xingbackend.model.vo.user.list.UserListSortVo;
+import top.kkuily.xingbackend.model.vo.user.list.UserListParamsVo;
 import top.kkuily.xingbackend.service.IUserService;
 import top.kkuily.xingbackend.mapper.UserMapper;
 import org.springframework.stereotype.Service;
@@ -21,7 +30,10 @@ import top.kkuily.xingbackend.utils.ErrorType;
 import top.kkuily.xingbackend.utils.Result;
 import top.kkuily.xingbackend.utils.Token;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -41,14 +53,16 @@ import static top.kkuily.xingbackend.constant.user.Login.*;
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IUserService {
 
     @Resource
+    private UserMapper userMapper;
+
+    @Resource
     private StringRedisTemplate stringRedisTemplate;
 
     /**
-     * 用户登录服务
-     *
      * @param response      HttpServletResponse
      * @param userLoginBody UserLoginAccountBody
      * @return Result
+     * @description 用户登录服务
      */
     @Override
     public Result loginWithAccount(HttpServletResponse response, UserLoginAccountBody userLoginBody) {
@@ -77,15 +91,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     }
 
     /**
-     * 使用手机号登录
-     *
-     * @param response      HttpServletResponse
-     * @param userLoginPhoneBody UserLoginPhoneBody
+     * @param response HttpServletResponse
+     * @param adminLoginPhoneBody AdminLoginPhoneBody
      * @return Result
+     * @description 用户使用手机号注册
      */
-    public Result loginWithPhone(HttpServletResponse response, UserLoginPhoneBody userLoginPhoneBody) {
-        String phone = userLoginPhoneBody.getPhone();
-        String sms = userLoginPhoneBody.getSms();
+    @Override
+    public Result registryWithPhone(HttpServletResponse response, AdminLoginPhoneBody adminLoginPhoneBody) {
+        String phone = adminLoginPhoneBody.getPhone();
+        String sms = adminLoginPhoneBody.getSms();
         if (phone == null) {
             return Result.fail(401, "非法请求", ErrorType.ERROR_MESSAGE);
         }
@@ -98,17 +112,21 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             String smsInCache = stringRedisTemplate.opsForValue()
                     .get(ADMIN_SMS_CHCHE_KEY + phone);
             if (sms.equals(smsInCache)) {
-                // 根据手机号查询用户
+                // 根据手机号查询管理员
                 QueryWrapper<User> userWrapper = new QueryWrapper<>();
                 userWrapper.eq("phone", phone);
                 User user = this.getOne(userWrapper);
-                if (user == null) {
-                    return Result.fail(401, "手机号不存在，禁止访问", ErrorType.NOTIFICATION);
+                if (user != null) {
+                    return Result.fail(401, "手机号已存在，请返回登录", ErrorType.NOTIFICATION);
                 }
                 // 生成token
                 String token = saveTokenVersion(user, true, new DefaultClaims());
                 response.setHeader(ADMIN_TOKEN_KEY_IN_HEADER, token);
-                return Result.success("登录成功", true);
+                // TODO 插入数据
+                User userInsert = new User();
+                userInsert.setPhone(phone);
+                int isInsert = userMapper.insert(userInsert);
+                return Result.success(isInsert == 1 ? "注册成功" : "注册失败", isInsert == 1);
             } else {
                 return Result.fail(403, "验证码错误，请重新输入", ErrorType.ERROR_MESSAGE);
             }
@@ -118,10 +136,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     }
 
     /**
-     * 用户鉴权服务
-     *
      * @param request HttpServletRequest
      * @return Result
+     * @description 用户鉴权服务
      */
     @Override
     public Result auth(HttpServletRequest request) {
@@ -154,21 +171,98 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     }
 
     /**
-     * @param listParams UserListParams
+     * @param userListParams ListParamsVo
      * @return Result
-     * @author 小K
      * @description 分页查询
+     * @author 小K
      */
     @Override
-    public Result getList(ListParams listParams) {
-        return Result.success("请求成功");
+    public Result getList(ListParamsVo<UserListParamsVo, UserListSortVo, UserListFilterVo> userListParams) {
+        // 1. 获取数据
+        UserListParamsVo params = userListParams.getParams();
+        UserListSortVo sort = userListParams.getSort();
+        UserListFilterVo filter = userListParams.getFilter();
+        ListPageVo page = userListParams.getPage();
+
+        // 2. 将bean转化为map对象
+        Map<String, Object> paramsMap = userListParams.getParams().beanToMapWithLimitField();
+
+        // 3. 查询数据
+        QueryWrapper<User> userListQuery = new QueryWrapper<>();
+        userListQuery
+                .allEq(paramsMap, false)
+                .orderBy(true, "ascend".equals(sort.getCreatedTime()), "createdTime")
+                .orderBy(true, "ascend".equals(sort.getModifiedTime()), "modifiedTime");
+        // 3.1 因为前端的小Bug，传递的数据有问题，在这里提前做判断，增强代码的健壮性
+        if (filter.getGender() != null) {
+            userListQuery.in(true, "gender", Arrays.toString(filter.getGender()));
+        }
+        if (filter.getIsDeleted() != null) {
+            userListQuery.in(true, "isDeleted", Arrays.toString(filter.getIsDeleted()));
+        }
+        if (filter.getTagIds() != null) {
+            userListQuery.in(true, "tagsId", Arrays.toString(filter.getTagIds()));
+        }
+        if (filter.getIsVip() != null) {
+            userListQuery.in(true, "isVip", Arrays.toString(filter.getIsVip()));
+        }
+        // 3.2 因为前端的小Bug，传递的数据有问题，在这里提前做判断，增强代码的健壮性
+        if (
+                params.getModifiedTime() != null
+                        &&
+                        !("{".equals(params.getCreatedTime().getStartTime()))
+                        &&
+                        !("\"".equals(params.getCreatedTime().getEndTime()))
+        ) {
+            userListQuery
+                    .between(
+                            true,
+                            "createdTime",
+                            params.getCreatedTime().getStartTime(),
+                            params.getCreatedTime().getEndTime()
+                    );
+        }
+        if (
+                params.getModifiedTime() != null
+                        &&
+                        !("{".equals(params.getModifiedTime().getStartTime()))
+                        &&
+                        !("\"".equals(params.getModifiedTime().getEndTime()))
+        ) {
+            userListQuery
+                    .between(
+                            true,
+                            "modifiedTime",
+                            params.getModifiedTime().getStartTime(),
+                            params.getModifiedTime().getEndTime()
+                    );
+        }
+
+        // 4. 分页查询
+        Page<User> userPageC = new Page<>(page.getCurrent(), page.getPageSize());
+        // 4.1 查询未分页时的数据总数
+        List<User> userNotPage = userMapper.selectList(userListQuery);
+        // 4.2 查询分页后的数据
+        Page<User> userPage = userMapper.selectPage(userPageC, userListQuery);
+
+        log.info("current: {}", page.getCurrent());
+        log.info("pageSize: {}", page.getPageSize());
+        log.info("total: {}", userNotPage.size());
+        log.info("users: {}", userPage.getRecords());
+
+        // 5. 封装数据
+        ListRes<User> userListRes = new ListRes<>();
+        userListRes.setCurrent(page.getCurrent());
+        userListRes.setPageSize(page.getPageSize());
+        userListRes.setList(userPage.getRecords());
+        userListRes.setTotal(userNotPage.size());
+        return Result.success("获取成功", userListRes);
     }
 
     /**
-     * 保存并将该token的版本号进行缓存
-     *
      * @param userInfo User
      * @return String
+     * @description 保存并将该token的版本号进行缓存
      */
     public String saveTokenVersion(User userInfo, Boolean isRegenerateVersion, Claims payload) {
         HashMap<String, Object> userInfoInToken = new HashMap<>();

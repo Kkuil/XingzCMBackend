@@ -1,5 +1,7 @@
 server:
     port: 3170  # 启动端口
+    servlet:
+        context-path: /api/xingz-cm
 spring:
     datasource:
         # mysql
@@ -28,7 +30,19 @@ aliyun:
     sms:
         accessKeyId: LTAI5t5pwZsyfad23GLkdXxe
         accessKeySecret: ecNSw2F78txmWAPUzP9yU0joVYLg9h
-# Amazon Web Service
-aws:
+## springdoc-openapi项目配置
+springdoc:
+    swagger-ui:
+        path: /swagger-ui.html
+        tags-sorter: alpha
+        operations-sorter: alpha
+    api-docs:
+        path: /v3/api-docs
+    group-configs:
+        - group: 'default'
+          paths-to-match: '/**'
+          packages-to-scan: top.kkuily.xingbackend.web
+# knife4j的增强配置，不需要增强可以不配
+
 
 

@@ -1,8 +1,8 @@
 package top.kkuily.xingbackend.mapper;
 
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 import top.kkuily.xingbackend.model.po.Admin;
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**
 * @author 小K

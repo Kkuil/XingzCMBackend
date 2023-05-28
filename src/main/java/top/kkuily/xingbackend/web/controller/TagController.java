@@ -2,32 +2,30 @@ package top.kkuily.xingbackend.web.controller;
 
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import top.kkuily.xingbackend.constant.commons.Api;
-import top.kkuily.xingbackend.model.po.Role;
-import top.kkuily.xingbackend.service.IRoleService;
+import top.kkuily.xingbackend.model.po.Tag;
+import top.kkuily.xingbackend.service.ITagService;
 import top.kkuily.xingbackend.utils.Result;
 
 import java.util.List;
 
 /**
- * @author 小K
  * @description 角色相关接口
+ * @author 小K
  */
 @RestController
-public class RoleController {
+public class TagController {
 
     @Resource
-    private IRoleService roleService;
+    private ITagService tagService;
 
     /**
-     * 获取全部角色
+     * @description 获取全部标签
      * @return Result
      */
-    @GetMapping("role")
-    public Result listRoles() {
-        List<Role> list = roleService.list();
+    @GetMapping("tag")
+    public Result listTags() {
+        List<Tag> list = tagService.list();
         return Result.success("获取成功", list);
     }
 }

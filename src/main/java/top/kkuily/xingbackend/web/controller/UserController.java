@@ -1,13 +1,23 @@
 package top.kkuily.xingbackend.web.controller;
 
+import cn.hutool.json.JSONUtil;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import top.kkuily.xingbackend.constant.commons.Api;
+import top.kkuily.xingbackend.model.dto.request.admin.AdminLoginPhoneBody;
 import top.kkuily.xingbackend.model.dto.request.user.UserLoginAccountBody;
 import top.kkuily.xingbackend.model.dto.request.user.UserLoginPhoneBody;
+import top.kkuily.xingbackend.model.vo.ListPageVo;
+import top.kkuily.xingbackend.model.vo.ListParamsVo;
+import top.kkuily.xingbackend.model.vo.admin.list.AdminListFilterVo;
+import top.kkuily.xingbackend.model.vo.admin.list.AdminListParamsVo;
+import top.kkuily.xingbackend.model.vo.admin.list.AdminListSortVo;
+import top.kkuily.xingbackend.model.vo.user.list.UserListFilterVo;
+import top.kkuily.xingbackend.model.vo.user.list.UserListParamsVo;
+import top.kkuily.xingbackend.model.vo.user.list.UserListSortVo;
 import top.kkuily.xingbackend.service.IUserService;
 import top.kkuily.xingbackend.utils.ErrorType;
 import top.kkuily.xingbackend.utils.PicCaptcha;
@@ -27,7 +37,6 @@ import static top.kkuily.xingbackend.constant.commons.Api.PHONE_REG;
  * @description 用户相关接口
  */
 @RestController
-@RequestMapping(Api.REQUEST_PREFIX)
 @Slf4j
 public class UserController {
     @Resource
@@ -43,18 +52,6 @@ public class UserController {
     @PostMapping("user-login-account")
     public Result loginWithAccount(HttpServletResponse response, @RequestBody UserLoginAccountBody userLoginBody) {
         return userService.loginWithAccount(response, userLoginBody);
-    }
-
-    /**
-     * 手机号登录接口
-     *
-     * @param response       HttpServletResponse
-     * @param userLoginPhoneBody UserLoginPhoneBody
-     * @return Result
-     */
-    @PostMapping("user-login-phone")
-    public Result loginWithPhone(HttpServletResponse response, @RequestBody UserLoginPhoneBody userLoginPhoneBody) {
-        return userService.loginWithPhone(response, userLoginPhoneBody);
     }
 
     /**
@@ -79,10 +76,10 @@ public class UserController {
     }
 
     /**
+     * @description 发送验证码
      * @author 小K
      * @param phone phone
      * @return Result
-     * @description 发送验证码
      */
     @GetMapping("user-sms")
     public Result getSmsCaptcha(String phone) throws ExecutionException, InterruptedException {
@@ -103,17 +100,33 @@ public class UserController {
         }
     }
 
-//    /**
-//     * 分页查询接口
-//     *
-//     * @param params Object
-//     * @param sort Object
-//     * @param filter Object
-//     * @return Result
-//     */
-//    @GetMapping("user")
-//    public Result getList(@RequestParam Object params, @RequestParam Object sort, @RequestParam Object filter) {
-//        ListParams userListParams = new ListParams(params, sort, filter);
-//        return userService.getList(userListParams);
-//    }
+    /**
+     * @description 用户手机号注册接口
+     *
+     * @param response            HttpServletResponse
+     * @param adminLoginPhoneBody AdminLoginPhoneBody
+     * @return Result
+     */
+    @PostMapping("user-registry-phone")
+    public Result loginWithPhone(HttpServletResponse response, @RequestBody AdminLoginPhoneBody adminLoginPhoneBody) {
+        return userService.registryWithPhone(response, adminLoginPhoneBody);
+    }
+
+    /**
+     * 用户分页查询接口
+     *
+     * @param params Object
+     * @param sort Object
+     * @param filter Object
+     * @return Result
+     */
+    @GetMapping("user")
+    public Result getList(String params, String sort, String filter, String page) {
+        UserListParamsVo paramsBean = JSONUtil.toBean(params, UserListParamsVo.class);
+        UserListSortVo sortBean = JSONUtil.toBean(sort, UserListSortVo.class);
+        UserListFilterVo filterBean = JSONUtil.toBean(filter, UserListFilterVo.class);
+        ListPageVo pageBean = JSONUtil.toBean(page, ListPageVo.class);
+        ListParamsVo<UserListParamsVo, UserListSortVo, UserListFilterVo> userListParams = new ListParamsVo<>(paramsBean, sortBean, filterBean, pageBean);
+        return userService.getList(userListParams);
+    }
 }
