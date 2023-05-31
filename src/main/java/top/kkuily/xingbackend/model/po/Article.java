@@ -1,18 +1,18 @@
 package top.kkuily.xingbackend.model.po;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
-
 import java.io.Serializable;
 import java.util.Date;
-
 import lombok.Data;
 
 /**
+ * 
  * @TableName article
  */
-@TableName(value = "article")
+@TableName(value ="article")
 @Data
 public class Article implements Serializable {
     /**
@@ -69,8 +69,7 @@ public class Article implements Serializable {
     /**
      * 是否逻辑删除(0：未删除 1：已删除)
      */
-    
-    private String isDeleted;
+    private Object isDeleted;
 
     /**
      * 创建时间
@@ -81,4 +80,7 @@ public class Article implements Serializable {
      * 最后一次修改时间（ON UPDATE CURRENT_TIMESTAMP）
      */
     private Date modifiedTime;
+
+    @TableField(exist = false)
+    private static final long serialVersionUID = 1L;
 }

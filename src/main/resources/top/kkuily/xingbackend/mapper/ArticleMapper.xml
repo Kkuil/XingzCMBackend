@@ -5,25 +5,20 @@
 <mapper namespace="top.kkuily.xingbackend.mapper.ArticleMapper">
 
     <resultMap id="BaseResultMap" type="top.kkuily.xingbackend.model.po.Article">
-            <id property="id" column="id" jdbcType="VARCHAR"/>
-            <result property="title" column="title" jdbcType="VARCHAR"/>
-            <result property="content" column="content" jdbcType="VARCHAR"/>
-            <result property="remark" column="remark" jdbcType="VARCHAR"/>
-            <result property="statusid" column="statusId" jdbcType="INTEGER"/>
-            <result property="cover" column="cover" jdbcType="VARCHAR"/>
-            <result property="liked" column="liked" jdbcType="OTHER"/>
-            <result property="collected" column="collected" jdbcType="OTHER"/>
-            <result property="shared" column="shared" jdbcType="OTHER"/>
-            <result property="tags" column="tags" jdbcType="OTHER"/>
-            <result property="isDeleted" column="isDeleted" jdbcType="OTHER"/>
-            <result property="createdTime" column="createdTime" jdbcType="TIMESTAMP"/>
-            <result property="modifiedTime" column="modifiedTime" jdbcType="TIMESTAMP"/>
+        <id property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="title" column="title" jdbcType="VARCHAR"/>
+        <result property="content" column="content" jdbcType="VARCHAR"/>
+        <result property="statusId" column="statusId" jdbcType="INTEGER"/>
+        <result property="cover" column="cover" jdbcType="VARCHAR"/>
+        <result property="tags" column="tags" jdbcType="OTHER"/>
+        <result property="isDeleted" column="isDeleted" jdbcType="OTHER"/>
+        <result property="createdTime" column="createdTime" jdbcType="TIMESTAMP"/>
+        <result property="modifiedTime" column="modifiedTime" jdbcType="TIMESTAMP"/>
     </resultMap>
 
     <sql id="Base_Column_List">
         id,title,content,
-        remark,statusId,cover,
-        liked,collected,shared,
+        statusId,cover,
         tags,isDeleted,createdTime,
         modifiedTime
     </sql>

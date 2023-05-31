@@ -6,7 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.Date;
 import java.util.HashMap;
 
-import static top.kkuily.xingbackend.constant.admin.Login.*;
+import static top.kkuily.xingbackend.constant.admin.Auth.*;
 
 /**
  * @author 小K

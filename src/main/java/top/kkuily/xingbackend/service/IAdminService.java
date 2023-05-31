@@ -2,14 +2,14 @@ package top.kkuily.xingbackend.service;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import top.kkuily.xingbackend.model.vo.ListParamsVo;
-import top.kkuily.xingbackend.model.dto.request.admin.AdminLoginPhoneBody;
-import top.kkuily.xingbackend.model.dto.request.admin.AdminLoginAccountBody;
+import top.kkuily.xingbackend.model.dto.request.admin.AdminLoginAccountBodyDTO;
+import top.kkuily.xingbackend.model.vo.ListParamsVO;
+import top.kkuily.xingbackend.model.dto.request.admin.AdminLoginPhoneBodyDTO;
 import top.kkuily.xingbackend.model.po.Admin;
 import com.baomidou.mybatisplus.extension.service.IService;
-import top.kkuily.xingbackend.model.vo.admin.list.AdminListFilterVo;
-import top.kkuily.xingbackend.model.vo.admin.list.AdminListParamsVo;
-import top.kkuily.xingbackend.model.vo.admin.list.AdminListSortVo;
+import top.kkuily.xingbackend.model.vo.admin.list.AdminListFilterVO;
+import top.kkuily.xingbackend.model.vo.admin.list.AdminListParamsVO;
+import top.kkuily.xingbackend.model.vo.admin.list.AdminListSortVO;
 import top.kkuily.xingbackend.utils.Result;
 
 /**
@@ -22,18 +22,18 @@ public interface IAdminService extends IService<Admin> {
     /**
      * @description 管理员账号登录服务
      * @author 小K
-     * @param adminLoginAccountBody AdminLoginAccountBody
+     * @param adminLoginAccountBody AdminLoginAccountBodyDTO
      * @return Result
      */
-    Result loginWithAccount(HttpServletResponse response, AdminLoginAccountBody adminLoginAccountBody);
+    Result loginWithAccount(HttpServletResponse response, AdminLoginAccountBodyDTO adminLoginAccountBody);
 
     /**
      * @description 管理员手机号登录服务
      * @author 小K
-     * @param adminLoginPhoneBody AdminLoginPhoneBody
+     * @param adminLoginPhoneBody AdminLoginPhoneBodyDTO
      * @return Result
      */
-    Result loginWithPhone(HttpServletResponse response, AdminLoginPhoneBody adminLoginPhoneBody);
+    Result loginWithPhone(HttpServletResponse response, AdminLoginPhoneBodyDTO adminLoginPhoneBody);
 
     /**
      * @description 管理员鉴权服务
@@ -46,8 +46,8 @@ public interface IAdminService extends IService<Admin> {
     /**
      * @description 分页查询
      * @author 小K
-     * @param adminListParams ListParamsVo
+     * @param adminListParams ListParamsVO
      * @return Result
      */
-    Result getList(ListParamsVo<AdminListParamsVo, AdminListSortVo, AdminListFilterVo> adminListParams);
+    Result getList(ListParamsVO<AdminListParamsVO, AdminListSortVO, AdminListFilterVO> adminListParams);
 }

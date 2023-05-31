@@ -12,9 +12,9 @@ import top.kkuily.xingbackend.model.po.User;
 import top.kkuily.xingbackend.service.impl.UserServiceImpl;
 import top.kkuily.xingbackend.utils.Token;
 
-import static top.kkuily.xingbackend.constant.user.Login.*;
-import static top.kkuily.xingbackend.constant.user.Login.USER_TOKEN_KEY_IN_HEADER;
-import static top.kkuily.xingbackend.constant.user.Login.USER_TOKEN_SECRET;
+import static top.kkuily.xingbackend.constant.user.Auth.*;
+import static top.kkuily.xingbackend.constant.user.Auth.USER_TOKEN_KEY_IN_HEADER;
+import static top.kkuily.xingbackend.constant.user.Auth.USER_TOKEN_SECRET;
 
 /**
  * @author 小K

@@ -6,6 +6,7 @@ target/
 
 # production
 application-prod.yml
+application.yml
 
 # 私钥
 SHA256WithRSA.txt

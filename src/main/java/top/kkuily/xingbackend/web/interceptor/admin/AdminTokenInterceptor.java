@@ -12,7 +12,7 @@ import top.kkuily.xingbackend.model.po.Admin;
 import top.kkuily.xingbackend.service.impl.AdminServiceImpl;
 import top.kkuily.xingbackend.utils.Token;
 
-import static top.kkuily.xingbackend.constant.admin.Login.*;
+import static top.kkuily.xingbackend.constant.admin.Auth.*;
 
 /**
  * @author 小K
@@ -31,7 +31,7 @@ public class AdminTokenInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         String tokenInHeader = request.getHeader(ADMIN_TOKEN_KEY_IN_HEADER);
-        System.out.println("admin-token");
+        log.info("token-interceptor: {}", tokenInHeader);
         // 1. 验证token是否为空
         if (tokenInHeader == null) {
             return false;

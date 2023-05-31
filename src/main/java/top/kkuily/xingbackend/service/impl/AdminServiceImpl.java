@@ -12,20 +12,21 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.util.StringUtils;
-import top.kkuily.xingbackend.model.dto.request.admin.AdminAuthInfo;
-import top.kkuily.xingbackend.model.dto.response.ListRes;
-import top.kkuily.xingbackend.model.vo.ListParamsVo;
-import top.kkuily.xingbackend.model.dto.request.admin.AdminLoginAccountBody;
-import top.kkuily.xingbackend.model.dto.request.admin.AdminLoginPhoneBody;
+import top.kkuily.xingbackend.model.dto.request.admin.AdminAuthInfoDTO;
+import top.kkuily.xingbackend.model.dto.request.admin.AdminLoginAccountBodyDTO;
+import top.kkuily.xingbackend.model.dto.response.ListResDTO;
+import top.kkuily.xingbackend.model.dto.response.admin.AdminAuthInfoResDTO;
+import top.kkuily.xingbackend.model.vo.ListParamsVO;
+import top.kkuily.xingbackend.model.dto.request.admin.AdminLoginPhoneBodyDTO;
 import top.kkuily.xingbackend.model.po.Admin;
 import top.kkuily.xingbackend.model.po.Role;
-import top.kkuily.xingbackend.model.po.RoleAuth;
-import top.kkuily.xingbackend.model.vo.admin.list.AdminListFilterVo;
-import top.kkuily.xingbackend.model.vo.ListPageVo;
-import top.kkuily.xingbackend.model.vo.admin.list.AdminListParamsVo;
-import top.kkuily.xingbackend.model.vo.admin.list.AdminListSortVo;
+import top.kkuily.xingbackend.model.po.Auth;
+import top.kkuily.xingbackend.model.vo.admin.list.AdminListFilterVO;
+import top.kkuily.xingbackend.model.vo.ListPageVO;
+import top.kkuily.xingbackend.model.vo.admin.list.AdminListParamsVO;
+import top.kkuily.xingbackend.model.vo.admin.list.AdminListSortVO;
 import top.kkuily.xingbackend.service.IAdminService;
-import top.kkuily.xingbackend.mapper.RoleAuthMapper;
+import top.kkuily.xingbackend.mapper.AuthMapper;
 import top.kkuily.xingbackend.mapper.RoleMapper;
 import top.kkuily.xingbackend.mapper.AdminMapper;
 import org.springframework.stereotype.Service;
@@ -38,8 +39,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static top.kkuily.xingbackend.constant.admin.Login.*;
+import static top.kkuily.xingbackend.constant.admin.Auth.*;
 import static top.kkuily.xingbackend.constant.commons.Api.PHONE_REG;
+import static top.kkuily.xingbackend.constant.commons.global.MAX_COUNT_PER_LIST;
 
 /**
  * @author 小K
@@ -57,20 +59,19 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
     private AdminMapper adminMapper;
 
     @Resource
-    private RoleAuthMapper roleAuthMapper;
+    private AuthMapper authMapper;
 
     @Resource
     private StringRedisTemplate stringRedisTemplate;
 
     /**
-     * @description 管理员账号登录服务
-     *
      * @param response              HttpServletResponse
-     * @param adminLoginAccountBody AdminLoginAccountBody
+     * @param adminLoginAccountBody AdminLoginAccountBodyDTO
      * @return Result
+     * @description 管理员账号登录服务
      */
     @Override
-    public Result loginWithAccount(HttpServletResponse response, AdminLoginAccountBody adminLoginAccountBody) {
+    public Result loginWithAccount(HttpServletResponse response, AdminLoginAccountBodyDTO adminLoginAccountBody) {
         String id = adminLoginAccountBody.getId();
         String password = adminLoginAccountBody.getPassword();
         // 1. 判断账号是否为空
@@ -94,13 +95,13 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
     }
 
     /**
-     * @description 使用手机号登录
      * @param response            HttpServletResponse
-     * @param adminLoginPhoneBody AdminLoginPhoneBody
+     * @param adminLoginPhoneBody AdminLoginPhoneBodyDTO
      * @return Result
+     * @description 使用手机号登录
      */
     @Override
-    public Result loginWithPhone(HttpServletResponse response, AdminLoginPhoneBody adminLoginPhoneBody) {
+    public Result loginWithPhone(HttpServletResponse response, AdminLoginPhoneBodyDTO adminLoginPhoneBody) {
         String phone = adminLoginPhoneBody.getPhone();
         String sms = adminLoginPhoneBody.getSms();
         if (phone == null) {
@@ -113,7 +114,7 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
         Matcher matcher = reg.matcher(phone);
         if (matcher.matches()) {
             String smsInCache = stringRedisTemplate.opsForValue()
-                    .get(ADMIN_SMS_CHCHE_KEY + phone);
+                    .get(ADMIN_SMS_CACHE_KEY + phone);
             if (sms.equals(smsInCache)) {
                 // 根据手机号查询管理员
                 QueryWrapper<Admin> adminWrapper = new QueryWrapper<>();
@@ -135,9 +136,9 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
     }
 
     /**
-     * @description 管理员鉴权服务
      * @param request HttpServletRequest
      * @return Result
+     * @description 管理员鉴权服务
      */
     @Override
     public Result auth(HttpServletRequest request) {
@@ -165,7 +166,11 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
             return Result.fail(403, "禁止访问", ErrorType.NOTIFICATION);
         }
 
-        // 2.2 通过管理员角色ID进行查询角色信息
+        // 2.2 脱敏
+        AdminAuthInfoResDTO adminAuthInfoResDto = new AdminAuthInfoResDTO();
+        admin.convertTo(adminAuthInfoResDto);
+
+        // 2.3 通过管理员角色ID进行查询角色信息
         Role role = roleMapper.selectById(admin.getRoleId());
         log.info("roleid: {}", admin.getRoleId());
         log.info("role: {}", role);
@@ -173,41 +178,40 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
             return Result.fail(500, "服务器内部错误，请联系超级管理员后再试", ErrorType.REDIRECT);
         }
 
-        // 2.3 通过角色ID查询相应的权限ID进行权限整合
+        // 2.4 通过角色ID查询相应的权限ID进行权限整合
         String[] authList = StringUtils.split(role.getAuthList(), ",");
         List<String> authRoutes = new ArrayList<>();
         List<String> authSideBars = new ArrayList<>();
         if (authList != null) {
             for (String id : authList) {
-                RoleAuth authInfo = roleAuthMapper.selectById(id);
+                Auth authInfo = authMapper.selectById(id);
                 authRoutes.add(authInfo.getAuthRoute());
-                authSideBars.add(authInfo.getAuthSideBar());
             }
         }
 
         // 3. 封装数据
-        AdminAuthInfo adminAuthInfo = new AdminAuthInfo();
+        AdminAuthInfoDTO adminAuthInfo = new AdminAuthInfoDTO();
         adminAuthInfo.setAuthroutes(authRoutes);
         adminAuthInfo.setAuthsidebars(authSideBars);
-        adminAuthInfo.setAdminAuthInfo(admin, role);
+        adminAuthInfo.setAdminAuthInfo(adminAuthInfoResDto, role);
 
         // 4. 返回数据
         return Result.success("验证成功", adminAuthInfo);
     }
 
     /**
-     * @param adminListParams ListParamsVo
+     * @param adminListParams ListParamsVO
      * @return Result
      * @author 小K
      * @description 分页查询
      */
     @Override
-    public Result getList(ListParamsVo<AdminListParamsVo, AdminListSortVo, AdminListFilterVo> adminListParams) {
+    public Result getList(ListParamsVO<AdminListParamsVO, AdminListSortVO, AdminListFilterVO> adminListParams) {
         // 1. 获取数据
-        AdminListParamsVo params = adminListParams.getParams();
-        AdminListSortVo sort = adminListParams.getSort();
-        AdminListFilterVo filter = adminListParams.getFilter();
-        ListPageVo page = adminListParams.getPage();
+        AdminListParamsVO params = adminListParams.getParams();
+        AdminListSortVO sort = adminListParams.getSort();
+        AdminListFilterVO filter = adminListParams.getFilter();
+        ListPageVO page = adminListParams.getPage();
 
         // 2. 将bean转化为map对象
         Map<String, Object> paramsMap = adminListParams.getParams().beanToMapWithLimitField();
@@ -219,16 +223,16 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
                 .orderBy(true, "ascend".equals(sort.getCreatedTime()), "createdTime")
                 .orderBy(true, "ascend".equals(sort.getModifiedTime()), "modifiedTime");
         // 3.1 因为前端的小Bug，传递的数据有问题，在这里提前做判断，增强代码的健壮性
-        if(filter.getGender() != null) {
+        if (filter.getGender() != null) {
             adminListQuery.in(true, "gender", Arrays.toString(filter.getGender()));
         }
-        if(filter.getRoleId() != null) {
+        if (filter.getRoleId() != null) {
             adminListQuery.in(true, "roleId", Arrays.toString(filter.getRoleId()));
         }
-        if(filter.getDeptId() != null) {
+        if (filter.getDeptId() != null) {
             adminListQuery.in(true, "deptId", Arrays.toString(filter.getDeptId()));
         }
-        if(filter.getIsDeleted() != null) {
+        if (filter.getIsDeleted() != null) {
             adminListQuery.in(true, "isDeleted", Arrays.toString(filter.getIsDeleted()));
         }
         // 3.2 因为前端的小Bug，传递的数据有问题，在这里提前做判断，增强代码的健壮性
@@ -263,6 +267,11 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
                     );
         }
 
+        // 附加：防爬虫
+        if (page.getPageSize() >= MAX_COUNT_PER_LIST) {
+            return Result.fail(403, "爬虫无所遁形，禁止访问", ErrorType.REDIRECT);
+        }
+
         // 4. 分页查询
         Page<Admin> adminPageC = new Page<>(page.getCurrent(), page.getPageSize());
         // 4.1 查询未分页时的数据总数
@@ -276,7 +285,7 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
         log.info("admins: {}", adminPage.getRecords());
 
         // 5. 封装数据
-        ListRes<Admin> adminListRes = new ListRes<>();
+        ListResDTO<Admin> adminListRes = new ListResDTO<>();
         adminListRes.setCurrent(page.getCurrent());
         adminListRes.setPageSize(page.getPageSize());
         adminListRes.setList(adminPage.getRecords());
@@ -285,10 +294,9 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
     }
 
     /**
-     * 保存并将该token的版本号进行缓存
-     *
      * @param adminInfo Admin
      * @return String
+     * @description 保存并将该token的版本号进行缓存
      */
     public String saveTokenVersion(Admin adminInfo, Boolean isRegenerateVersion, Claims payload) {
         HashMap<String, Object> adminInfoInToken = new HashMap<>();

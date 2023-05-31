@@ -6,7 +6,7 @@ import jakarta.servlet.http.*;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
-import top.kkuily.xingbackend.model.dto.request.admin.AdminLoginAccountBody;
+import top.kkuily.xingbackend.model.dto.request.admin.AdminLoginAccountBodyDTO;
 import top.kkuily.xingbackend.service.IAdminService;
 import top.kkuily.xingbackend.utils.Result;
 import top.kkuily.xingbackend.web.controller.AdminController;
@@ -567,7 +567,7 @@ class AdminTests {
 
     @Test
     void testLogin() {
-        AdminLoginAccountBody adminLoginBody = new AdminLoginAccountBody();
+        AdminLoginAccountBodyDTO adminLoginBody = new AdminLoginAccountBodyDTO();
         adminLoginBody.setId("123456");
         adminLoginBody.setPassword("123456");
         adminLoginBody.setType("account");

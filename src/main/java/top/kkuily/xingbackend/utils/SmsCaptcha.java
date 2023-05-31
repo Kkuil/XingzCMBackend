@@ -11,6 +11,10 @@ import darabonba.core.client.ClientOverrideConfiguration;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.ConfigurationPropertiesBinding;
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 
@@ -25,13 +29,12 @@ import static top.kkuily.xingbackend.constant.commons.Api.PHONE_REG;
  * @author 小K
  * @description 发送短信验证码
  */
+@ConfigurationProperties(prefix = "aliyun.sms")
 public class SmsCaptcha {
 
-    @Value("${aliyun.sms.accessKeyId}")
-    private static String accessKeyId;
+    private static final String ACCESS_KEY_ID = "LTAI5t5pwZsyfad23GLkdXxe";
 
-    @Value("${aliyun.sms.accessKeySecret}")
-    private static String accessKeySecret;
+    private static final String ACCESS_KEY_SECRET = "ecNSw2F78txmWAPUzP9yU0joVYLg9h";
 
     public static Integer send(String phone) throws ExecutionException, InterruptedException {
 
@@ -40,11 +43,10 @@ public class SmsCaptcha {
         if (!matcher.matches()) {
             return 0;
         }
-        System.out.println(accessKeyId);
-        // Configure Credentials authentication information, including ak, secret, token
+        System.out.println(ACCESS_KEY_ID);
         StaticCredentialProvider provider = StaticCredentialProvider.create(Credential.builder()
-                .accessKeyId(accessKeyId)
-                .accessKeySecret(accessKeySecret)
+                .accessKeyId(ACCESS_KEY_ID)
+                .accessKeySecret(ACCESS_KEY_SECRET)
                 .build());
 
         AsyncClient client = AsyncClient.builder()

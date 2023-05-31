@@ -2,16 +2,18 @@ package top.kkuily.xingbackend.model.po;
 
 import com.baomidou.mybatisplus.annotation.*;
 
+import java.io.Serializable;
 import java.util.Date;
 
 import lombok.Data;
 
 /**
+ * @author 小K
  * @TableName location
  */
 @TableName(value = "location")
 @Data
-public class Location {
+public class Location implements Serializable {
     /**
      * 地区ID
      */
@@ -43,4 +45,7 @@ public class Location {
      * 最后一次修改时间（ON UPDATE CURRENT_TIMESTAMP）
      */
     private Date modifiedTime;
+
+    @TableField(exist = false)
+    private static final long serialVersionUID = 1L;
 }

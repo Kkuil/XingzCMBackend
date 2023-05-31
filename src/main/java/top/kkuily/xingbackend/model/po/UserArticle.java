@@ -1,9 +1,11 @@
 package top.kkuily.xingbackend.model.po;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 
+import java.io.Serializable;
 import java.util.Date;
 
 import lombok.Data;
@@ -14,7 +16,7 @@ import lombok.Data;
  */
 @TableName(value = "user_article")
 @Data
-public class UserArticle {
+public class UserArticle implements Serializable {
     /**
      * 用户ID
      */
@@ -39,7 +41,7 @@ public class UserArticle {
     /**
      * 是否逻辑删除(0：未删除 1：已删除)
      */
-    
+
     private String isDeleted;
 
     /**
@@ -51,4 +53,8 @@ public class UserArticle {
      * 最后一次修改时间（ON UPDATE CURRENT_TIMESTAMP）
      */
     private Date modifiedTime;
+
+
+    @TableField(exist = false)
+    private static final long serialVersionUID = 1L;
 }

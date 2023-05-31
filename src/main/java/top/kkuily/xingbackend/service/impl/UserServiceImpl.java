@@ -11,18 +11,16 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import top.kkuily.xingbackend.model.dto.request.admin.AdminLoginPhoneBody;
-import top.kkuily.xingbackend.model.dto.request.user.UserLoginAccountBody;
-import top.kkuily.xingbackend.model.dto.request.user.UserLoginPhoneBody;
-import top.kkuily.xingbackend.model.dto.response.ListRes;
-import top.kkuily.xingbackend.model.po.Admin;
+import top.kkuily.xingbackend.model.dto.request.admin.AdminLoginPhoneBodyDTO;
+import top.kkuily.xingbackend.model.dto.request.user.UserLoginAccountBodyDTO;
+import top.kkuily.xingbackend.model.dto.response.ListResDTO;
+import top.kkuily.xingbackend.model.dto.response.user.UserAuthInfoResDTO;
 import top.kkuily.xingbackend.model.po.User;
-import top.kkuily.xingbackend.model.vo.ListPageVo;
-import top.kkuily.xingbackend.model.vo.ListParamsVo;
-import top.kkuily.xingbackend.model.vo.user.list.UserListFilterVo;
-import top.kkuily.xingbackend.model.vo.user.list.UserListParamsVo;
-import top.kkuily.xingbackend.model.vo.user.list.UserListSortVo;
-import top.kkuily.xingbackend.model.vo.user.list.UserListParamsVo;
+import top.kkuily.xingbackend.model.vo.ListPageVO;
+import top.kkuily.xingbackend.model.vo.ListParamsVO;
+import top.kkuily.xingbackend.model.vo.user.list.UserListFilterVO;
+import top.kkuily.xingbackend.model.vo.user.list.UserListParamsVO;
+import top.kkuily.xingbackend.model.vo.user.list.UserListSortVO;
 import top.kkuily.xingbackend.service.IUserService;
 import top.kkuily.xingbackend.mapper.UserMapper;
 import org.springframework.stereotype.Service;
@@ -30,18 +28,14 @@ import top.kkuily.xingbackend.utils.ErrorType;
 import top.kkuily.xingbackend.utils.Result;
 import top.kkuily.xingbackend.utils.Token;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static top.kkuily.xingbackend.constant.admin.Login.ADMIN_SMS_CHCHE_KEY;
-import static top.kkuily.xingbackend.constant.admin.Login.ADMIN_TOKEN_KEY_IN_HEADER;
 import static top.kkuily.xingbackend.constant.commons.Api.PHONE_REG;
-import static top.kkuily.xingbackend.constant.user.Login.*;
+import static top.kkuily.xingbackend.constant.commons.global.MAX_COUNT_PER_LIST;
+import static top.kkuily.xingbackend.constant.user.Auth.*;
 
 /**
  * @author 小K
@@ -60,12 +54,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 
     /**
      * @param response      HttpServletResponse
-     * @param userLoginBody UserLoginAccountBody
+     * @param userLoginBody UserLoginAccountBodyDTO
      * @return Result
      * @description 用户登录服务
      */
     @Override
-    public Result loginWithAccount(HttpServletResponse response, UserLoginAccountBody userLoginBody) {
+    public Result loginWithAccount(HttpServletResponse response, UserLoginAccountBodyDTO userLoginBody) {
         String username = userLoginBody.getUsername();
         String password = userLoginBody.getPassword();
         // 1. 判断账号是否为空
@@ -91,13 +85,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     }
 
     /**
-     * @param response HttpServletResponse
-     * @param adminLoginPhoneBody AdminLoginPhoneBody
+     * @param response            HttpServletResponse
+     * @param adminLoginPhoneBody AdminLoginPhoneBodyDTO
      * @return Result
      * @description 用户使用手机号注册
      */
     @Override
-    public Result registryWithPhone(HttpServletResponse response, AdminLoginPhoneBody adminLoginPhoneBody) {
+    public Result registryWithPhone(HttpServletResponse response, AdminLoginPhoneBodyDTO adminLoginPhoneBody) {
         String phone = adminLoginPhoneBody.getPhone();
         String sms = adminLoginPhoneBody.getSms();
         if (phone == null) {
@@ -110,23 +104,28 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         Matcher matcher = reg.matcher(phone);
         if (matcher.matches()) {
             String smsInCache = stringRedisTemplate.opsForValue()
-                    .get(ADMIN_SMS_CHCHE_KEY + phone);
+                    .get(USER_REGISTRY_CACHE_KEY + phone);
             if (sms.equals(smsInCache)) {
-                // 根据手机号查询管理员
+                // 根据手机号查询用户
                 QueryWrapper<User> userWrapper = new QueryWrapper<>();
                 userWrapper.eq("phone", phone);
                 User user = this.getOne(userWrapper);
                 if (user != null) {
-                    return Result.fail(401, "手机号已存在，请返回登录", ErrorType.NOTIFICATION);
+                    return Result.fail(401, "手机号已存在，请返回登录", ErrorType.REDIRECT);
                 }
-                // 生成token
-                String token = saveTokenVersion(user, true, new DefaultClaims());
-                response.setHeader(ADMIN_TOKEN_KEY_IN_HEADER, token);
-                // TODO 插入数据
+                // 插入数据
                 User userInsert = new User();
+                userInsert.setUsername("xingz_cm_" + UUID.randomUUID().toString().replace("-", "").substring(0, 8));
                 userInsert.setPhone(phone);
                 int isInsert = userMapper.insert(userInsert);
-                return Result.success(isInsert == 1 ? "注册成功" : "注册失败", isInsert == 1);
+                if (isInsert == 1) {
+                    // 生成token
+                    String token = saveTokenVersion(userInsert, true, new DefaultClaims());
+                    response.setHeader(USER_TOKEN_KEY_IN_HEADER, token);
+                    return Result.success("注册成功", true);
+                } else {
+                    return Result.success("注册失败", false);
+                }
             } else {
                 return Result.fail(403, "验证码错误，请重新输入", ErrorType.ERROR_MESSAGE);
             }
@@ -166,23 +165,27 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             return Result.fail(403, "禁止访问", ErrorType.NOTIFICATION);
         }
 
+        // 2.2 脱敏（如：密码）
+        UserAuthInfoResDTO userAuthInfoResDto = new UserAuthInfoResDTO();
+        user.convertTo(userAuthInfoResDto);
+
         // 3. 返回数据
-        return Result.success("验证成功", user);
+        return Result.success("验证成功", userAuthInfoResDto);
     }
 
     /**
-     * @param userListParams ListParamsVo
+     * @param userListParams ListParamsVO
      * @return Result
      * @description 分页查询
      * @author 小K
      */
     @Override
-    public Result getList(ListParamsVo<UserListParamsVo, UserListSortVo, UserListFilterVo> userListParams) {
+    public Result getList(ListParamsVO<UserListParamsVO, UserListSortVO, UserListFilterVO> userListParams) {
         // 1. 获取数据
-        UserListParamsVo params = userListParams.getParams();
-        UserListSortVo sort = userListParams.getSort();
-        UserListFilterVo filter = userListParams.getFilter();
-        ListPageVo page = userListParams.getPage();
+        UserListParamsVO params = userListParams.getParams();
+        UserListSortVO sort = userListParams.getSort();
+        UserListFilterVO filter = userListParams.getFilter();
+        ListPageVO page = userListParams.getPage();
 
         // 2. 将bean转化为map对象
         Map<String, Object> paramsMap = userListParams.getParams().beanToMapWithLimitField();
@@ -238,6 +241,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
                     );
         }
 
+        // 附加：防爬虫
+        if(page.getPageSize() >= MAX_COUNT_PER_LIST) {
+            return Result.fail(403, "爬虫无所遁形，禁止访问", ErrorType.REDIRECT);
+        }
+
         // 4. 分页查询
         Page<User> userPageC = new Page<>(page.getCurrent(), page.getPageSize());
         // 4.1 查询未分页时的数据总数
@@ -251,7 +259,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         log.info("users: {}", userPage.getRecords());
 
         // 5. 封装数据
-        ListRes<User> userListRes = new ListRes<>();
+        ListResDTO<User> userListRes = new ListResDTO<>();
         userListRes.setCurrent(page.getCurrent());
         userListRes.setPageSize(page.getPageSize());
         userListRes.setList(userPage.getRecords());

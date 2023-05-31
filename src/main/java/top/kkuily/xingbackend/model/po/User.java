@@ -2,12 +2,14 @@ package top.kkuily.xingbackend.model.po;
 
 import com.baomidou.mybatisplus.annotation.*;
 
-import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
 
 import lombok.Data;
-import top.kkuily.xingbackend.model.enums.Gender;
+import org.springframework.beans.BeanUtils;
+import top.kkuily.xingbackend.model.dto.response.user.UserAuthInfoResDTO;
+
+import javax.validation.constraints.NotNull;
 
 /**
  * @author 小K
@@ -25,6 +27,7 @@ public class User implements Serializable {
     /**
      * 用户名
      */
+    @NotNull
     private String username;
 
     /**
@@ -82,4 +85,15 @@ public class User implements Serializable {
      * 最后一次修改时间（ON UPDATE CURRENT_TIMESTAMP）
      */
     private Date modifiedTime;
+
+
+    @TableField(exist = false)
+    private static final long serialVersionUID = 1L;
+
+    /**
+     * User转成本脱敏类的方法
+     */
+    public void convertTo(UserAuthInfoResDTO userAuthInfoResDto) {
+        BeanUtils.copyProperties(this, userAuthInfoResDto);
+    }
 }

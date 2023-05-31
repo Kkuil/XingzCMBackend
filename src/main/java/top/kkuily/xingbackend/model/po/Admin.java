@@ -1,15 +1,16 @@
 package top.kkuily.xingbackend.model.po;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 
 import java.io.Serializable;
 import java.util.Date;
 
 import lombok.Data;
-import top.kkuily.xingbackend.model.enums.Gender;
+import org.springframework.beans.BeanUtils;
+import top.kkuily.xingbackend.model.dto.response.admin.AdminAuthInfoResDTO;
 
 /**
  * @author 小K
@@ -74,4 +75,14 @@ public class Admin implements Serializable {
      * 最后一次修改时间（ON UPDATE CURRENT_TIMESTAMP）
      */
     private Date modifiedTime;
+
+    @TableField(exist = false)
+    private static final long serialVersionUID = 1L;
+
+    /**
+     * Admin转成本脱敏类的方法
+     */
+    public void convertTo(AdminAuthInfoResDTO adminAuthInfoResDto) {
+        BeanUtils.copyProperties(this, adminAuthInfoResDto);
+    }
 }

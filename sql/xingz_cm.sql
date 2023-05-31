@@ -54,6 +54,18 @@ CREATE TABLE IF NOT EXISTS user_rank(
 	FOREIGN KEY (id) REFERENCES user(id)
 );
 
+-- 用户会员信息（user_vip）
+CREATE TABLE IF NOT EXISTS user_vip(
+	id VARCHAR(10) COMMENT "会员ID",
+	userId VARCHAR(10) NOT NULL COMMENT "用户ID",
+	expiredTime DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL COMMENT "会员过期时间",
+	isDeleted ENUM("0", "1") DEFAULT "0" COMMENT "是否逻辑删除(0：未删除 1：已删除)",
+	createdTime DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT "创建时间（会员开通时间）",
+	modifiedTime DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT "最后一次修改时间（ON UPDATE CURRENT_TIMESTAMP）" ,
+	PRIMARY KEY (id),
+	FOREIGN KEY (userId) REFERENCES user(id)
+);
+
 -- 管理员信息表（admin）
 CREATE TABLE IF NOT EXISTS admin(
 	id VARCHAR(36) COMMENT "管理员账户ID（可用来登录）",
@@ -84,8 +96,8 @@ CREATE TABLE IF NOT EXISTS role(
 	PRIMARY KEY (id)
 );
 
--- 角色权限信息 （role_auth）
-CREATE TABLE IF NOT EXISTS role_auth(
+-- 角色权限信息 （auth）
+CREATE TABLE IF NOT EXISTS auth(
 	id INT AUTO_INCREMENT COMMENT "权限ID（1000以上的整数）",
 	authName VARCHAR(30) NOT NULL UNIQUE COMMENT "权限名称",
 	authRoute VARCHAR(100) NOT NULL COMMENT "与权限所绑定的路由（例如：/user-manage/user-list）",
@@ -99,7 +111,7 @@ CREATE TABLE IF NOT EXISTS role_auth(
 
 -- 部门信息（department）
 CREATE TABLE IF NOT EXISTS department(
-	id VARCHAR(36) COMMENT "部门ID",
+	id VARCHAR(10) COMMENT "部门ID",
 	deptName VARCHAR(30) NOT NULL COMMENT "部门名称",
 	managerid VARCHAR(36) NOT NULL COMMENT "管理员ID",
 	locationId INT NOT NULL COMMENT "地区ID",
@@ -127,12 +139,9 @@ CREATE TABLE IF NOT EXISTS article(
 	id VARCHAR(36) COMMENT "文章ID",
 	title VARCHAR(100) NOT NULL DEFAULT "星知学习频道" COMMENT "标题",
 	content TEXT NOT NULL COMMENT "内容",
-	remark TINYTEXT COMMENT "评论信息（例如：'{id: '1', comment: '欢迎', 'createdTime': '1970-01-01 00:00:00', 'modifiedTime': '1970-01-01 00:00:00'}'）",
+	commentId TINYTEXT NOT NULL COMMENT "评论ID，例如1,2,3",
 	statusId INT NOT NULL DEFAULT 0 COMMENT "状态ID",
 	cover VARCHAR(255) NOT NULL DEFAULT "https://bucket.oss.kkuil/default_cover.jpg" COMMENT "文章封面图",
-	liked JSON COMMENT "点赞信息（例如：[1, 2, 3]记录了点赞了该文章的星友ID）",
-	collected JSON COMMENT "收藏信息（例如：[1, 2, 3]记录了收藏了该文章的星友ID）",
-	shared JSON COMMENT "转发信息（例如：[1, 2, 3]记录了转发了该文章的星友ID）",
 	tags JSON COMMENT "标签信息（例如：[1, 2, 3]记录了标签的ID）",
 	isDeleted ENUM("0", "1") DEFAULT "0" COMMENT "是否逻辑删除(0：未删除 1：已删除)",
 	createdTime DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT "创建时间",
@@ -141,15 +150,57 @@ CREATE TABLE IF NOT EXISTS article(
 	FOREIGN KEY (statusId) REFERENCES article_status(id)
 );
 
--- 文章状态映射信息（article_status）
+-- 文章状态信息（article_status）
 CREATE TABLE IF NOT EXISTS article_status(
 	id INT AUTO_INCREMENT COMMENT "文章状态ID",
+	articleId VARCHAR(36) COMMENT "文章ID",
 	statusName VARCHAR(10) NOT NULL UNIQUE COMMENT "状态名",
 	isDeleted ENUM("0", "1") DEFAULT "0" COMMENT "是否逻辑删除(0：未删除 1：已删除)",
 	createdTime DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT "创建时间",
 	modifiedTime DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT "最后一次修改时间（ON UPDATE CURRENT_TIMESTAMP）" ,
 	PRIMARY KEY (id)
 );
+
+-- 文章统计信息（article_statistic）
+CREATE TABLE IF NOT EXISTS article_statistic(
+	id VARCHAR(10) COMMENT "文章ID",
+	liked TINYTEXT NOT NULL COMMENT "喜欢文章的用户ID",
+	collected TINYTEXT NOT NULL COMMENT "收藏文章的用户ID",
+	commentId TINYTEXT NOT NULL COMMENT "评论文章的ID",
+	isDeleted ENUM("0", "1") DEFAULT "0" COMMENT "是否逻辑删除(0：未删除 1：已删除)",
+	createdTime DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT "创建时间",
+	modifiedTime DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT "最后一次修改时间（ON UPDATE CURRENT_TIMESTAMP）" ,
+	PRIMARY KEY (id)
+);
+
+-- 文章评论信息（article_comment）
+CREATE TABLE IF NOT EXISTS article_comment(
+	id VARCHAR(10) COMMENT "文章评论ID",
+	articleId VARCHAR(36) COMMENT "文章ID",
+	userId VARCHAR(10) COMMENT "评论文章的用户ID",
+	content TINYTEXT COMMENT "评论内容",
+	isDeleted ENUM("0", "1") DEFAULT "0" COMMENT "是否逻辑删除(0：未删除 1：已删除)",
+	createdTime DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT "创建时间（评论时间）",
+	modifiedTime DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT "最后一次修改时间（ON UPDATE CURRENT_TIMESTAMP）" ,
+	PRIMARY KEY (id),
+	FOREIGN KEY (articleId) REFERENCES article(id),
+	FOREIGN KEY (userId) REFERENCES user(id)
+);
+
+-- 评论回复信息（comment_reply）
+CREATE TABLE IF NOT EXISTS comment_reply(
+	id VARCHAR(10) COMMENT "评论回复ID",
+	commentId VARCHAR(10) COMMENT "评论ID",
+	userId VARCHAR(10) COMMENT "回复评论的用户ID",
+	content TINYTEXT COMMENT "恢复内容",
+	isDeleted ENUM("0", "1") DEFAULT "0" COMMENT "是否逻辑删除(0：未删除 1：已删除)",
+	createdTime DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT "创建时间（评论时间）",
+	modifiedTime DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT "最后一次修改时间（ON UPDATE CURRENT_TIMESTAMP）" ,
+	PRIMARY KEY (id),
+	FOREIGN KEY (commentId) REFERENCES article_comment(id),
+	FOREIGN KEY (userId) REFERENCES user(id)
+);
+
 
 -- 标签信息
 CREATE TABLE IF NOT EXISTS tag(

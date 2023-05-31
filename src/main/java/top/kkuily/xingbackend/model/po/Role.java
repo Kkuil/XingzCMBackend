@@ -1,9 +1,11 @@
 package top.kkuily.xingbackend.model.po;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 
+import java.io.Serializable;
 import java.util.Date;
 
 import lombok.Data;
@@ -14,7 +16,7 @@ import lombok.Data;
  */
 @TableName(value = "role")
 @Data
-public class Role {
+public class Role implements Serializable {
     /**
      * 角色ID
      */
@@ -51,4 +53,7 @@ public class Role {
      * 最后一次修改时间（ON UPDATE CURRENT_TIMESTAMP）
      */
     private Date modifiedTime;
+
+    @TableField(exist = false)
+    private static final long serialVersionUID = 1L;
 }

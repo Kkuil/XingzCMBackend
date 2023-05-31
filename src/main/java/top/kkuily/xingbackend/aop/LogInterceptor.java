@@ -12,9 +12,8 @@ import org.springframework.util.StopWatch;
 import java.util.UUID;
 
 /**
- * 请求响应日志 AOP
- *
- * @author yupi
+ * @author Kkuil
+ * @description 请求响应日志 AOP
  **/
 @Aspect
 @Component
@@ -25,7 +24,10 @@ public class LogInterceptor {
     private jakarta.servlet.http.HttpServletRequest httpServletRequest;
 
     /**
-     * 执行拦截
+     * @param point ProceedingJoinPoint
+     * @return Object
+     * @throws Throwable Throwable
+     * @description 执行拦截
      */
     @Around("execution(* top.kkuily.xingbackend.web.controller.*.*(..))")
     public Object doInterceptor(ProceedingJoinPoint point) throws Throwable {
@@ -49,5 +51,7 @@ public class LogInterceptor {
         log.info("request end, id: {}, cost: {}ms", requestId, totalTimeMillis);
         return result;
     }
+
+
 }
 

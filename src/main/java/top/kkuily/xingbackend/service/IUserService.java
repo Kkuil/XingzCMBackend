@@ -2,15 +2,14 @@ package top.kkuily.xingbackend.service;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import top.kkuily.xingbackend.model.dto.request.admin.AdminLoginPhoneBody;
-import top.kkuily.xingbackend.model.dto.request.user.UserLoginAccountBody;
-import top.kkuily.xingbackend.model.dto.request.user.UserLoginPhoneBody;
+import top.kkuily.xingbackend.model.dto.request.admin.AdminLoginPhoneBodyDTO;
+import top.kkuily.xingbackend.model.dto.request.user.UserLoginAccountBodyDTO;
 import top.kkuily.xingbackend.model.po.User;
 import com.baomidou.mybatisplus.extension.service.IService;
-import top.kkuily.xingbackend.model.vo.ListParamsVo;
-import top.kkuily.xingbackend.model.vo.user.list.UserListFilterVo;
-import top.kkuily.xingbackend.model.vo.user.list.UserListParamsVo;
-import top.kkuily.xingbackend.model.vo.user.list.UserListSortVo;
+import top.kkuily.xingbackend.model.vo.ListParamsVO;
+import top.kkuily.xingbackend.model.vo.user.list.UserListFilterVO;
+import top.kkuily.xingbackend.model.vo.user.list.UserListParamsVO;
+import top.kkuily.xingbackend.model.vo.user.list.UserListSortVO;
 import top.kkuily.xingbackend.utils.Result;
 
 /**
@@ -23,18 +22,18 @@ public interface IUserService extends IService<User> {
     /**
      * @description 用户账号登录服务
      * @author 小K
-     * @param userLoginBody UserLoginAccountBody
+     * @param userLoginBody UserLoginAccountBodyDTO
      * @return Result
      */
-    Result loginWithAccount(HttpServletResponse response, UserLoginAccountBody userLoginBody);
+    Result loginWithAccount(HttpServletResponse response, UserLoginAccountBodyDTO userLoginBody);
 
     /**
      * @description 用户手机号登录服务
      * @author 小K
-     * @param adminLoginPhoneBody AdminLoginPhoneBody
+     * @param adminLoginPhoneBody AdminLoginPhoneBodyDTO
      * @return Result
      */
-    Result registryWithPhone(HttpServletResponse response, AdminLoginPhoneBody adminLoginPhoneBody);
+    Result registryWithPhone(HttpServletResponse response, AdminLoginPhoneBodyDTO adminLoginPhoneBody);
 
     /**
      * @description 用户鉴权服务
@@ -50,6 +49,6 @@ public interface IUserService extends IService<User> {
      * @param userListParams UserListParams
      * @return Result
      */
-    Result getList(ListParamsVo<UserListParamsVo, UserListSortVo, UserListFilterVo> userListParams);
+    Result getList(ListParamsVO<UserListParamsVO, UserListSortVO, UserListFilterVO> userListParams);
 
 }

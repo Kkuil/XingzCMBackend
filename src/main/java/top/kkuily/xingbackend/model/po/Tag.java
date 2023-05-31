@@ -2,6 +2,7 @@ package top.kkuily.xingbackend.model.po;
 
 import com.baomidou.mybatisplus.annotation.*;
 
+import java.io.Serializable;
 import java.util.Date;
 
 import lombok.Data;
@@ -12,7 +13,7 @@ import lombok.Data;
  */
 @TableName(value = "tag")
 @Data
-public class Tag {
+public class Tag implements Serializable {
     /**
      * 标签ID
      */
@@ -27,7 +28,7 @@ public class Tag {
     /**
      * 是否逻辑删除(0：未删除 1：已删除)
      */
-    
+
     private String isDeleted;
 
     /**
@@ -39,4 +40,8 @@ public class Tag {
      * 最后一次修改时间（ON UPDATE CURRENT_TIMESTAMP）
      */
     private Date modifiedTime;
+
+
+    @TableField(exist = false)
+    private static final long serialVersionUID = 1L;
 }

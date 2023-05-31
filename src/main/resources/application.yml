@@ -13,7 +13,7 @@ spring:
         # redis
         redis:
             database: 0
-            host: 192.168.196.129
+            host: localhost
             port: 6379
             password: 123456
 mybatis-plus:
@@ -42,7 +42,6 @@ springdoc:
         - group: 'default'
           paths-to-match: '/**'
           packages-to-scan: top.kkuily.xingbackend.web
-# knife4j的增强配置，不需要增强可以不配
 
 
 

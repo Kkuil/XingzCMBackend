@@ -2,6 +2,7 @@ package top.kkuily.xingbackend.model.po;
 
 import com.baomidou.mybatisplus.annotation.*;
 
+import java.io.Serializable;
 import java.util.Date;
 
 import lombok.Data;
@@ -12,7 +13,7 @@ import lombok.Data;
  */
 @TableName(value = "article_status")
 @Data
-public class ArticleStatus {
+public class ArticleStatus implements Serializable {
     /**
      * 文章状态ID
      */
@@ -39,4 +40,7 @@ public class ArticleStatus {
      * 最后一次修改时间（ON UPDATE CURRENT_TIMESTAMP）
      */
     private Date modifiedTime;
+
+    @TableField(exist = false)
+    private static final long serialVersionUID = 1L;
 }
