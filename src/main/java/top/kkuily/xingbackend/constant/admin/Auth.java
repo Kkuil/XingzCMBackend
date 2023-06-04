@@ -28,4 +28,8 @@ public class Auth {
      * 管理员使用手机号发送验证码进行登录的验证码存储key
      */
     public static final String ADMIN_SMS_CACHE_KEY = "admin:sms:";
+    /**
+     * 管理员默认密码
+     */
+    public static final String ADMIN_DEFAULT_PASSWORD = "xingz_cm_admin_123456";
 }

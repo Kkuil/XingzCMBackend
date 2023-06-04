@@ -2,6 +2,14 @@ package top.kkuily.xingbackend.service;
 
 import top.kkuily.xingbackend.model.po.Role;
 import com.baomidou.mybatisplus.extension.service.IService;
+import top.kkuily.xingbackend.model.vo.ListParamsVO;
+import top.kkuily.xingbackend.model.vo.admin.list.AdminListFilterVO;
+import top.kkuily.xingbackend.model.vo.admin.list.AdminListParamsVO;
+import top.kkuily.xingbackend.model.vo.admin.list.AdminListSortVO;
+import top.kkuily.xingbackend.model.vo.role.list.RoleListFilterVO;
+import top.kkuily.xingbackend.model.vo.role.list.RoleListParamsVO;
+import top.kkuily.xingbackend.model.vo.role.list.RoleListSortVO;
+import top.kkuily.xingbackend.utils.Result;
 
 /**
 * @author 小K
@@ -10,4 +18,5 @@ import com.baomidou.mybatisplus.extension.service.IService;
 */
 public interface IRoleService extends IService<Role> {
 
+    Result getList(ListParamsVO<RoleListParamsVO, RoleListSortVO, RoleListFilterVO> roleListParams);
 }

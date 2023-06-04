@@ -15,6 +15,10 @@ public class AdminAddBodyDTO {
      */
     private String id;
     /**
+     * 管理员名称
+     */
+    private String name;
+    /**
      * 密码
      */
     private String password;
@@ -33,9 +37,10 @@ public class AdminAddBodyDTO {
 
     /**
      * 转换为本类静态方法
+     *
      * @param admin Admin
      */
-    public void convertToAdmin(Admin admin) {
+    public void convertTo(Admin admin) {
         BeanUtils.copyProperties(this, admin);
     }
 }

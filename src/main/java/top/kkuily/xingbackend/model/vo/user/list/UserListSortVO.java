@@ -13,6 +13,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class UserListSortVO {
     /**
+     * 生日
+     */
+    private String birthday;
+    /**
      * 创建时间
      */
     private String createdTime;

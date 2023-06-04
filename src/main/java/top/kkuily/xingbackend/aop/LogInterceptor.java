@@ -8,6 +8,9 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StopWatch;
+import jakarta.servlet.http.HttpServletRequest;
+import top.kkuily.xingbackend.model.po.Log;
+import top.kkuily.xingbackend.service.ILogService;
 
 import java.util.UUID;
 
@@ -21,7 +24,10 @@ import java.util.UUID;
 public class LogInterceptor {
 
     @Resource
-    private jakarta.servlet.http.HttpServletRequest httpServletRequest;
+    private HttpServletRequest httpServletRequest;
+
+    @Resource
+    private ILogService logService;
 
     /**
      * @param point ProceedingJoinPoint
@@ -35,23 +41,38 @@ public class LogInterceptor {
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
         // 生成请求唯一 id
-        String requestId = UUID.randomUUID().toString();
-        String url = httpServletRequest.getRequestURI();
+        String id = StringUtils.substring(UUID.randomUUID().toString(), 0, 10);
+        String path = httpServletRequest.getRequestURI();
+        // 请求方法
+        String method = httpServletRequest.getMethod();
         // 获取请求参数
         Object[] args = point.getArgs();
-        String reqParam = "[" + StringUtils.join(args, ", ") + "]";
-        // 输出请求日志
-        log.info("request start，id: {}, path: {}, ip: {}, params: {}", requestId, url,
-                httpServletRequest.getRemoteHost(), reqParam);
+        String params = "[" + StringUtils.join(args, ", ") + "]";
+        // 获取请求IP
+        String ip = httpServletRequest.getRemoteHost();
         // 执行原方法
         Object result = point.proceed();
-        // 输出响应日志
         stopWatch.stop();
         long totalTimeMillis = stopWatch.getTotalTimeMillis();
-        log.info("request end, id: {}, cost: {}ms", requestId, totalTimeMillis);
+        // 输出请求日志
+        log.info("id: {}, path: {}, method: {}, ip: {}, params: {}, cost: {}",
+                id,
+                path,
+                method,
+                ip,
+                params,
+                totalTimeMillis
+        );
+        // 日志上报
+        Log logEntity = new Log();
+        logEntity.setId(id);
+        logEntity.setPath(path);
+        logEntity.setMethod(method);
+        logEntity.setIp(ip);
+        logEntity.setParams(params);
+        logEntity.setTotalTime(String.valueOf(totalTimeMillis));
+        logService.save(logEntity);
         return result;
     }
-
-
 }
 

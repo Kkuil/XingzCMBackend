@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import top.kkuily.xingbackend.model.dto.request.admin.AdminLoginPhoneBodyDTO;
 import top.kkuily.xingbackend.model.dto.request.user.UserLoginAccountBodyDTO;
+import top.kkuily.xingbackend.model.dto.request.user.UserLoginPhoneBodyDTO;
 import top.kkuily.xingbackend.model.po.User;
 import com.baomidou.mybatisplus.extension.service.IService;
 import top.kkuily.xingbackend.model.vo.ListParamsVO;
@@ -30,10 +31,10 @@ public interface IUserService extends IService<User> {
     /**
      * @description 用户手机号登录服务
      * @author 小K
-     * @param adminLoginPhoneBody AdminLoginPhoneBodyDTO
+     * @param userLoginPhoneBody UserLoginPhoneBodyDTO
      * @return Result
      */
-    Result registryWithPhone(HttpServletResponse response, AdminLoginPhoneBodyDTO adminLoginPhoneBody);
+    Result registryWithPhone(HttpServletResponse response, UserLoginPhoneBodyDTO userLoginPhoneBody);
 
     /**
      * @description 用户鉴权服务

@@ -11,8 +11,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import top.kkuily.xingbackend.model.dto.request.admin.AdminLoginPhoneBodyDTO;
 import top.kkuily.xingbackend.model.dto.request.user.UserLoginAccountBodyDTO;
+import top.kkuily.xingbackend.model.dto.request.user.UserLoginPhoneBodyDTO;
 import top.kkuily.xingbackend.model.dto.response.ListResDTO;
 import top.kkuily.xingbackend.model.dto.response.user.UserAuthInfoResDTO;
 import top.kkuily.xingbackend.model.po.User;
@@ -34,7 +34,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static top.kkuily.xingbackend.constant.commons.Api.PHONE_REG;
-import static top.kkuily.xingbackend.constant.commons.global.MAX_COUNT_PER_LIST;
+import static top.kkuily.xingbackend.constant.commons.Global.MAX_COUNT_PER_LIST;
 import static top.kkuily.xingbackend.constant.user.Auth.*;
 
 /**
@@ -67,7 +67,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             return Result.fail(400, "账号不能为空", ErrorType.NOTIFICATION);
         }
         QueryWrapper<User> userWrapper = new QueryWrapper<>();
-        userWrapper.like("username", username);
+        userWrapper.eq("username", username);
         User userInfo = this.getOne(userWrapper);
         if (userInfo == null) {
             return Result.fail(400, "账号或密码错误，如果忘记密码，请使用手机号重置密码", ErrorType.NOTIFICATION);
@@ -86,14 +86,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 
     /**
      * @param response            HttpServletResponse
-     * @param adminLoginPhoneBody AdminLoginPhoneBodyDTO
+     * @param userLoginPhoneBody UserLoginPhoneBodyDTO
      * @return Result
      * @description 用户使用手机号注册
      */
     @Override
-    public Result registryWithPhone(HttpServletResponse response, AdminLoginPhoneBodyDTO adminLoginPhoneBody) {
-        String phone = adminLoginPhoneBody.getPhone();
-        String sms = adminLoginPhoneBody.getSms();
+    public Result registryWithPhone(HttpServletResponse response, UserLoginPhoneBodyDTO userLoginPhoneBody) {
+        String phone = userLoginPhoneBody.getPhone();
+        String sms = userLoginPhoneBody.getSms();
         if (phone == null) {
             return Result.fail(401, "非法请求", ErrorType.ERROR_MESSAGE);
         }
@@ -192,26 +192,28 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 
         // 3. 查询数据
         QueryWrapper<User> userListQuery = new QueryWrapper<>();
+        log.info("birthday: {}", sort.getBirthday());
         userListQuery
                 .allEq(paramsMap, false)
                 .orderBy(true, "ascend".equals(sort.getCreatedTime()), "createdTime")
-                .orderBy(true, "ascend".equals(sort.getModifiedTime()), "modifiedTime");
+                .orderBy(true, "ascend".equals(sort.getModifiedTime()), "modifiedTime")
+                .orderBy(true, "ascend".equals(sort.getBirthday()), "birthday");
         // 3.1 因为前端的小Bug，传递的数据有问题，在这里提前做判断，增强代码的健壮性
         if (filter.getGender() != null) {
-            userListQuery.in(true, "gender", Arrays.toString(filter.getGender()));
+            userListQuery.in(true, "gender", filter.getGender());
         }
         if (filter.getIsDeleted() != null) {
-            userListQuery.in(true, "isDeleted", Arrays.toString(filter.getIsDeleted()));
+            userListQuery.in(true, "isDeleted", filter.getIsDeleted());
         }
         if (filter.getTagIds() != null) {
-            userListQuery.in(true, "tagsId", Arrays.toString(filter.getTagIds()));
+            userListQuery.in(true, "tagsId", filter.getTagIds());
         }
         if (filter.getIsVip() != null) {
-            userListQuery.in(true, "isVip", Arrays.toString(filter.getIsVip()));
+            userListQuery.in(true, "isVip", filter.getIsVip());
         }
         // 3.2 因为前端的小Bug，传递的数据有问题，在这里提前做判断，增强代码的健壮性
         if (
-                params.getModifiedTime() != null
+                params.getCreatedTime() != null
                         &&
                         !("{".equals(params.getCreatedTime().getStartTime()))
                         &&
@@ -242,7 +244,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         }
 
         // 附加：防爬虫
-        if(page.getPageSize() >= MAX_COUNT_PER_LIST) {
+        if (page.getPageSize() >= MAX_COUNT_PER_LIST) {
             return Result.fail(403, "爬虫无所遁形，禁止访问", ErrorType.REDIRECT);
         }
 

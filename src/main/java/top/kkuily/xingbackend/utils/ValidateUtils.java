@@ -1,5 +1,6 @@
 package top.kkuily.xingbackend.utils;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.regex.Pattern;
@@ -22,6 +23,28 @@ public class ValidateUtils {
     }
 
     /**
+     * @param fieldName String
+     * @param value     Object
+     * @description 验证字段是为空
+     */
+    public static void validateNotEmpty(String fieldName, Object value) {
+        if (ObjectUtils.isEmpty(value)) {
+            throw new IllegalArgumentException(fieldName + "不能为空");
+        }
+    }
+
+    /**
+     * @param fieldName String
+     * @param value     Object[]
+     * @description 验证字段是为空
+     */
+    public static void validateNotEmpty(String fieldName, Object[] value) {
+        if (ObjectUtils.isEmpty(value)) {
+            throw new IllegalArgumentException(fieldName + "不能为空");
+        }
+    }
+
+    /**
      * @param value     String
      * @param fieldName String
      * @param minLength int
@@ -29,6 +52,9 @@ public class ValidateUtils {
      * @description 判断长度是偶符合要求
      */
     public static void validateLength(String fieldName, String value, int minLength, int maxLength) {
+        if (minLength == maxLength && StringUtils.length(value) != minLength) {
+            throw new IllegalArgumentException(fieldName + "长度必须为" + minLength);
+        }
         if (StringUtils.length(value) < minLength || StringUtils.length(value) > maxLength) {
             throw new IllegalArgumentException(fieldName + "长度必须在" + minLength + "到" + maxLength + "之间");
         }

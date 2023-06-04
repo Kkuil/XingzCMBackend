@@ -43,17 +43,12 @@ public class AdminAuthInfoDTO {
     /**
      * 角色名
      */
-    private String rolename;
+    private String roleName;
 
     /**
      * 角色所拥有的权限路由（例如：['/userManage', '/adminManage']）
      */
-    private List<String> authroutes;
-
-    /**
-     * 角色所拥有的侧边栏（例如：['userManage:add', 'userManage:delete']）
-     */
-    private List<String> authsidebars;
+    private List<String> authRoutes;
 
     public void setAdminAuthInfo(AdminAuthInfoResDTO adminAuthInfoResDto, Role role) {
         this.setId(adminAuthInfoResDto.getId());
@@ -61,6 +56,6 @@ public class AdminAuthInfoDTO {
         this.setPhone(adminAuthInfoResDto.getPhone());
         this.setAvatar(adminAuthInfoResDto.getAvatar());
         this.setGender(adminAuthInfoResDto.getGender());
-        this.setRolename(role.getRoleName());
+        this.setRoleName(role.getRoleName());
     }
 }

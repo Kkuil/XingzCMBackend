@@ -11,7 +11,7 @@ import java.util.List;
 @Data
 public class ListResDTO<DataType> {
     private List<DataType> list;
-    private int current;
-    private int pageSize;
-    private int total;
+    private Integer current;
+    private Integer pageSize;
+    private Integer total;
 }

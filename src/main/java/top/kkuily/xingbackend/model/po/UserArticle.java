@@ -1,10 +1,12 @@
 package top.kkuily.xingbackend.model.po;
 
+import cn.hutool.core.date.DateTime;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
 
@@ -47,7 +49,7 @@ public class UserArticle implements Serializable {
     /**
      * 创建时间
      */
-    private Date createdTime;
+      private Date createdTime;
 
     /**
      * 最后一次修改时间（ON UPDATE CURRENT_TIMESTAMP）
@@ -56,5 +58,6 @@ public class UserArticle implements Serializable {
 
 
     @TableField(exist = false)
+        @Serial
     private static final long serialVersionUID = 1L;
 }

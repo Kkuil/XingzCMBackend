@@ -37,21 +37,6 @@ public enum Gender {
     public int getValue() {
         return value;
     }
-
-    /**
-     * 根据整数值获取对应的枚举常量。
-     *
-     * @param value 整数值
-     * @return 对应的枚举常量，如果不存在则返回null
-     */
-    public static Gender getByValue(int value) {
-        for (Gender gender : Gender.values()) {
-            if (gender.getValue() == value) {
-                return gender;
-            }
-        }
-        return null;
-    }
 }
 
 

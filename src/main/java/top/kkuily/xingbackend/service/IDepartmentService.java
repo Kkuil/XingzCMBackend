@@ -2,6 +2,11 @@ package top.kkuily.xingbackend.service;
 
 import top.kkuily.xingbackend.model.po.Department;
 import com.baomidou.mybatisplus.extension.service.IService;
+import top.kkuily.xingbackend.model.vo.ListParamsVO;
+import top.kkuily.xingbackend.model.vo.dept.list.DeptListFilterVO;
+import top.kkuily.xingbackend.model.vo.dept.list.DeptListParamsVO;
+import top.kkuily.xingbackend.model.vo.dept.list.DeptListSortVO;
+import top.kkuily.xingbackend.utils.Result;
 
 /**
 * @author 小K
@@ -10,4 +15,5 @@ import com.baomidou.mybatisplus.extension.service.IService;
 */
 public interface IDepartmentService extends IService<Department> {
 
+    Result getList(ListParamsVO<DeptListParamsVO, DeptListSortVO, DeptListFilterVO> listParams);
 }

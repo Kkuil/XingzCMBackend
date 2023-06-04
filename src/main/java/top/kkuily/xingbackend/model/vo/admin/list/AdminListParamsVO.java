@@ -42,6 +42,10 @@ public class AdminListParamsVO {
      */
     private DateRangeCommonVO modifiedTime;
 
+    /**
+     * @return Map<String, Object>
+     * @description bean对象转化为Map的方法
+     */
     public Map<String, Object> beanToMapWithLimitField() {
         HashMap<String, Object> map = new HashMap<>();
         map.put("id", id);

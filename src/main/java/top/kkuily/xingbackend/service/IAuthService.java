@@ -2,6 +2,11 @@ package top.kkuily.xingbackend.service;
 
 import top.kkuily.xingbackend.model.po.Auth;
 import com.baomidou.mybatisplus.extension.service.IService;
+import top.kkuily.xingbackend.model.vo.ListParamsVO;
+import top.kkuily.xingbackend.model.vo.auth.list.AuthListFilterVO;
+import top.kkuily.xingbackend.model.vo.auth.list.AuthListParamsVO;
+import top.kkuily.xingbackend.model.vo.auth.list.AuthListSortVO;
+import top.kkuily.xingbackend.utils.Result;
 
 /**
 * @author 小K
@@ -10,4 +15,5 @@ import com.baomidou.mybatisplus.extension.service.IService;
 */
 public interface IAuthService extends IService<Auth> {
 
+    Result getList(ListParamsVO<AuthListParamsVO, AuthListSortVO, AuthListFilterVO> listParams);
 }

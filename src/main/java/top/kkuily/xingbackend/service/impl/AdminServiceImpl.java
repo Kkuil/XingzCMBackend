@@ -41,7 +41,7 @@ import java.util.regex.Pattern;
 
 import static top.kkuily.xingbackend.constant.admin.Auth.*;
 import static top.kkuily.xingbackend.constant.commons.Api.PHONE_REG;
-import static top.kkuily.xingbackend.constant.commons.global.MAX_COUNT_PER_LIST;
+import static top.kkuily.xingbackend.constant.commons.Global.MAX_COUNT_PER_LIST;
 
 /**
  * @author 小K
@@ -181,18 +181,19 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
         // 2.4 通过角色ID查询相应的权限ID进行权限整合
         String[] authList = StringUtils.split(role.getAuthList(), ",");
         List<String> authRoutes = new ArrayList<>();
-        List<String> authSideBars = new ArrayList<>();
         if (authList != null) {
             for (String id : authList) {
                 Auth authInfo = authMapper.selectById(id);
+                if (authInfo == null) {
+                    continue;
+                }
                 authRoutes.add(authInfo.getAuthRoute());
             }
         }
 
         // 3. 封装数据
         AdminAuthInfoDTO adminAuthInfo = new AdminAuthInfoDTO();
-        adminAuthInfo.setAuthroutes(authRoutes);
-        adminAuthInfo.setAuthsidebars(authSideBars);
+        adminAuthInfo.setAuthRoutes(authRoutes);
         adminAuthInfo.setAdminAuthInfo(adminAuthInfoResDto, role);
 
         // 4. 返回数据
@@ -224,20 +225,20 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
                 .orderBy(true, "ascend".equals(sort.getModifiedTime()), "modifiedTime");
         // 3.1 因为前端的小Bug，传递的数据有问题，在这里提前做判断，增强代码的健壮性
         if (filter.getGender() != null) {
-            adminListQuery.in(true, "gender", Arrays.toString(filter.getGender()));
+            adminListQuery.in(true, "gender", filter.getGender());
         }
         if (filter.getRoleId() != null) {
-            adminListQuery.in(true, "roleId", Arrays.toString(filter.getRoleId()));
+            adminListQuery.in(true, "roleId", filter.getRoleId());
         }
         if (filter.getDeptId() != null) {
-            adminListQuery.in(true, "deptId", Arrays.toString(filter.getDeptId()));
+            adminListQuery.in(true, "deptId", filter.getDeptId());
         }
         if (filter.getIsDeleted() != null) {
-            adminListQuery.in(true, "isDeleted", Arrays.toString(filter.getIsDeleted()));
+            adminListQuery.in(true, "isDeleted", filter.getIsDeleted());
         }
         // 3.2 因为前端的小Bug，传递的数据有问题，在这里提前做判断，增强代码的健壮性
         if (
-                params.getModifiedTime() != null
+                params.getCreatedTime() != null
                         &&
                         !("{".equals(params.getCreatedTime().getStartTime()))
                         &&

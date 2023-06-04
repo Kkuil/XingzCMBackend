@@ -1,5 +1,6 @@
 package top.kkuily.xingbackend.model.dto.response.admin;
 
+import cn.hutool.core.date.DateTime;
 import lombok.Data;
 
 import java.util.Date;
@@ -47,7 +48,7 @@ public class AdminAuthInfoResDTO {
     /**
      * 创建时间
      */
-    private Date createdTime;
+      private Date createdTime;
 
     /**
      * 最后一次修改时间（ON UPDATE CURRENT_TIMESTAMP）

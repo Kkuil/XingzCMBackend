@@ -31,7 +31,7 @@ import static top.kkuily.xingbackend.constant.admin.Auth.*;
 @Aspect
 @Slf4j
 @Configuration
-public class CheckPermissionInterceptor {
+public class PermissionCheckInterceptor {
 
     @Resource
     private StringRedisTemplate stringRedisTemplate;
@@ -116,6 +116,7 @@ public class CheckPermissionInterceptor {
             log.info("PermissionCheck: {}", true);
             log.info("list: {}", (Object) list);
             log.info("authId: {}", authId);
+            log.info("authId: {}", Arrays.binarySearch(list, String.valueOf(authId)));
             return Arrays.binarySearch(list, String.valueOf(authId)) >= 0;
         } catch (Exception e) {
             return false;

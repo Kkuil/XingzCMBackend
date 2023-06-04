@@ -1,10 +1,12 @@
 package top.kkuily.xingbackend.model.po;
 
+import cn.hutool.core.date.DateTime;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
 
@@ -41,7 +43,7 @@ public class Auth implements Serializable {
     /**
      * 是否逻辑删除(0：未删除 1：已删除)
      */
-    private Object isDeleted;
+    private String isDeleted;
 
     /**
      * 创建时间
@@ -54,5 +56,6 @@ public class Auth implements Serializable {
     private Date modifiedTime;
 
     @TableField(exist = false)
+    @Serial
     private static final long serialVersionUID = 1L;
 }

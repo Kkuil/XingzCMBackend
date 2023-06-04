@@ -29,4 +29,8 @@ public class Auth {
      * 用户注册验证码缓存Key
      */
     public static final String USER_REGISTRY_CACHE_KEY = "user:registry:sms:";
+    /**
+     * 管理员默认密码
+     */
+    public static final String USER_DEFAULT_PASSWORD = "xingz_cm_admin_123456";
 }
