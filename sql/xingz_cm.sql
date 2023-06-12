@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS user(
 	birthday DATE COMMENT "生日（1970-01-01）",
 	phone VARCHAR(11) COMMENT "手机号",
 	email VARCHAR(100) COMMENT "邮箱",
-	tags VARCHAR(255) COMMENT "标签（例如：['前端'，'后端']）",
+	tagIds VARCHAR(255) COMMENT "标签（例如：[1, 2]）",
 	avatar VARCHAR(512) DEFAULT "https://bucket.oss.kkuil/default_avatar.jpg" COMMENT "默认头像",
 	isVip ENUM("0", "1") DEFAULT "0" COMMENT "是否为VIP用户（0：非会员 1：会员）",
 	isDeleted ENUM("0", "1") DEFAULT "0" COMMENT "是否逻辑删除(0：未删除 1：已删除)",
@@ -88,7 +88,7 @@ CREATE TABLE IF NOT EXISTS admin(
 CREATE TABLE IF NOT EXISTS role(
 	id VARCHAR(36) COMMENT "角色ID",
 	roleName VARCHAR(30) NOT NULL UNIQUE DEFAULT "c_admin" COMMENT "角色名",
-	authList VARCHAR(1024) COMMENT "权限列表",
+	authIds VARCHAR(1024) COMMENT "权限列表",
 	description VARCHAR(255) DEFAULT "" COMMENT "角色相关描述",
 	isDeleted ENUM("0", "1") DEFAULT "0" COMMENT "是否逻辑删除(0：未删除 1：已删除)",
 	createdTime DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT "创建时间",
@@ -113,7 +113,7 @@ CREATE TABLE IF NOT EXISTS auth(
 CREATE TABLE IF NOT EXISTS department(
 	id VARCHAR(10) COMMENT "部门ID",
 	deptName VARCHAR(30) NOT NULL COMMENT "部门名称",
-	managerid VARCHAR(36) NOT NULL COMMENT "管理员ID",
+	managerId VARCHAR(36) NOT NULL COMMENT "管理员ID",
 	locationId INT NOT NULL COMMENT "地区ID",
 	isDeleted ENUM("0", "1") DEFAULT "0" COMMENT "是否逻辑删除(0：未删除 1：已删除)",
 	createdTime DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT "创建时间",
@@ -137,12 +137,12 @@ CREATE TABLE IF NOT EXISTS location(
 -- 文章信息（article）
 CREATE TABLE IF NOT EXISTS article(
 	id VARCHAR(36) COMMENT "文章ID",
+	userId VARCHAR(36) NOT NULL COMMENT "用户ID",
 	title VARCHAR(100) NOT NULL DEFAULT "星知学习频道" COMMENT "标题",
 	content TEXT NOT NULL COMMENT "内容",
-	commentId TINYTEXT NOT NULL COMMENT "评论ID，例如1,2,3",
 	statusId INT NOT NULL DEFAULT 0 COMMENT "状态ID",
-	cover VARCHAR(255) NOT NULL DEFAULT "https://bucket.oss.kkuil/default_cover.jpg" COMMENT "文章封面图",
-	tags JSON COMMENT "标签信息（例如：[1, 2, 3]记录了标签的ID）",
+	categoryId VARCHAR(100) NOT NULL COMMENT "文章分类",
+	cover VARCHAR(255) DEFAULT "https://bucket.oss.kkuil/default_cover.jpg" COMMENT "文章封面图",
 	isDeleted ENUM("0", "1") DEFAULT "0" COMMENT "是否逻辑删除(0：未删除 1：已删除)",
 	createdTime DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT "创建时间",
 	modifiedTime DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT "最后一次修改时间（ON UPDATE CURRENT_TIMESTAMP）" ,
@@ -153,7 +153,6 @@ CREATE TABLE IF NOT EXISTS article(
 -- 文章状态信息（article_status）
 CREATE TABLE IF NOT EXISTS article_status(
 	id INT AUTO_INCREMENT COMMENT "文章状态ID",
-	articleId VARCHAR(36) COMMENT "文章ID",
 	statusName VARCHAR(10) NOT NULL UNIQUE COMMENT "状态名",
 	isDeleted ENUM("0", "1") DEFAULT "0" COMMENT "是否逻辑删除(0：未删除 1：已删除)",
 	createdTime DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT "创建时间",
@@ -167,6 +166,7 @@ CREATE TABLE IF NOT EXISTS article_statistic(
 	liked TINYTEXT NOT NULL COMMENT "喜欢文章的用户ID",
 	collected TINYTEXT NOT NULL COMMENT "收藏文章的用户ID",
 	commentId TINYTEXT NOT NULL COMMENT "评论文章的ID",
+	tagIds JSON COMMENT "标签信息（例如：[1, 2, 3]记录了标签的ID）",
 	isDeleted ENUM("0", "1") DEFAULT "0" COMMENT "是否逻辑删除(0：未删除 1：已删除)",
 	createdTime DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT "创建时间",
 	modifiedTime DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT "最后一次修改时间（ON UPDATE CURRENT_TIMESTAMP）" ,
@@ -187,6 +187,15 @@ CREATE TABLE IF NOT EXISTS article_comment(
 	FOREIGN KEY (userId) REFERENCES user(id)
 );
 
+-- 文章分类信息（article_category）
+CREATE TABLE IF NOT EXISTS article_category(
+	id VARCHAR(10) COMMENT "分类ID",
+	categoryName TINYTEXT COMMENT "分类名",
+	createdTime DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT "创建时间（评论时间）",
+	modifiedTime DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT "最后一次修改时间（ON UPDATE CURRENT_TIMESTAMP）" ,
+	PRIMARY KEY (id)
+);
+
 -- 评论回复信息（comment_reply）
 CREATE TABLE IF NOT EXISTS comment_reply(
 	id VARCHAR(10) COMMENT "评论回复ID",
@@ -204,7 +213,7 @@ CREATE TABLE IF NOT EXISTS comment_reply(
 -- 标签信息
 CREATE TABLE IF NOT EXISTS tag(
 	id INT AUTO_INCREMENT COMMENT "标签ID",
-	name VARCHAR(20) NOT NULL UNIQUE COMMENT "标签名",
+	tagName VARCHAR(20) NOT NULL UNIQUE COMMENT "标签名",
 	isDeleted ENUM("0", "1") DEFAULT "0" COMMENT "是否逻辑删除(0：未删除 1：已删除)",
 	createdTime DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT "创建时间",
 	modifiedTime DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT "最后一次修改时间（ON UPDATE CURRENT_TIMESTAMP）" ,
@@ -225,60 +234,14 @@ CREATE TABLE IF NOT EXISTS log(
 	PRIMARY KEY (id)
 );
 
-
-/**
-* 四、创建触发器
-*/
--- 1. 当向user表插入数据的时候，同步对相关信息表进行插入数据（后置触发器）
-CREATE TRIGGER IF NOT EXISTS insert_user_sync_reference_data
-AFTER INSERT
-ON user 
-FOR EACH ROW
-BEGIN
-	INSERT INTO user_article (id) VALUES (NEW.id);
-	INSERT INTO user_rank (id) VALUES (NEW.id);
-END;
-
--- 2. 当进行user表的逻辑删除时，同步逻辑删除相关信息（后置触发器）
-CREATE TRIGGER IF NOT EXISTS logic_del_user_sync_reference_data
-AFTER UPDATE
-ON user
-FOR EACH ROW
-BEGIN
-	IF NEW.isDeleted != OLD.isDeleted THEN
-		UPDATE user_article SET isDeleted = NEW.isDeleted WHERE id = NEW.id;
-		UPDATE user_rank SET isDeleted = NEW.isDeleted WHERE id = NEW.id;
-	END IF;
-END;
-
--- 3. 当向user表插入数据没有指定username时，自动向username插入默认值（前置触发器）
-CREATE TRIGGER IF NOT EXISTS specify_username_if_not_in_user
-BEFORE INSERT ON user
-FOR EACH ROW 
-BEGIN
-	IF NEW.username IS NULL OR NEW.username = "" THEN
-		SET NEW.username = CONCAT("xz_user_", NEW.id);
-  END IF;
-END;
-
--- 4. 当向admin表插入数据的时候，同步对相关信息表进行插入数据（后置触发器）
-CREATE TRIGGER IF NOT EXISTS insert_admin_sync_reference_data
-AFTER INSERT
-ON admin 
-FOR EACH ROW
-BEGIN
-	INSERT INTO role (id) VALUES (NEW.id);
-END;
-
--- 5. 当向user表插入数据没有指定username时，自动向username插入默认值（前置触发器）
-CREATE TRIGGER IF NOT EXISTS specify_name_if_not_in_admin
-BEFORE INSERT 
-ON admin
-FOR EACH ROW 
-BEGIN
-	IF NEW.name IS NULL OR NEW.name = "" THEN
-		SET NEW.name = CONCAT("xz_admin_", NEW.id);
-  END IF;
-END;
-
+-- ChatGPTModel
+CREATE TABLE IF NOT EXISTS chatgpt_model (
+	id VARCHAR(19) COMMENT "模型ID",
+	name VARCHAR(30) COMMENT "模型名称",
+	isDeleted ENUM("0", "1") DEFAULT "0" COMMENT "是否逻辑删除(0：未删除 1：已删除)",
+	cover VARCHAR(255) COMMENT "模型封面图",
+	createdTime DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT "创建时间",
+	modifiedTime DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT "最后一次修改时间（ON UPDATE CURRENT_TIMESTAMP）" ,
+	PRIMARY KEY (id)
+)
 

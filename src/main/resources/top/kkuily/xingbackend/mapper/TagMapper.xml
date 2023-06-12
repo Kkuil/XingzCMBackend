@@ -6,7 +6,7 @@
 
     <resultMap id="BaseResultMap" type="top.kkuily.xingbackend.model.po.Tag">
             <id property="id" column="id" jdbcType="INTEGER"/>
-            <result property="tagname" column="name" jdbcType="VARCHAR"/>
+            <result property="tagName" column="tagName" jdbcType="VARCHAR"/>
             <result property="isDeleted" column="isDeleted" jdbcType="OTHER"/>
             <result property="createdTime" column="createdTime" jdbcType="TIMESTAMP"/>
             <result property="modifiedTime" column="modifiedTime" jdbcType="TIMESTAMP"/>
@@ -16,4 +16,18 @@
         id,name,isDeleted,
         createdTime,modifiedTime
     </sql>
+
+    <select id="findTagNameListByBatchId" resultType="java.lang.String">
+        SELECT tagName
+        FROM tag t
+        <where>
+            <if test="ids != null and ids != ''">
+                AND t.id IN
+                <foreach item="tagId" index="index" collection="ids" open="(" separator="," close=")">
+                    #{tagId}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
 </mapper>

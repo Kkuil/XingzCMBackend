@@ -5,19 +5,35 @@
 <mapper namespace="top.kkuily.xingbackend.mapper.UserMapper">
 
     <resultMap id="BaseResultMap" type="top.kkuily.xingbackend.model.po.User">
-            <id property="id" column="id" jdbcType="VARCHAR"/>
-            <result property="username" column="username" jdbcType="VARCHAR"/>
-            <result property="password" column="password" jdbcType="VARCHAR"/>
-            <result property="gender" column="gender" jdbcType="OTHER"/>
-            <result property="birthday" column="birthday" jdbcType="DATE"/>
-            <result property="phone" column="phone" jdbcType="VARCHAR"/>
-            <result property="email" column="email" jdbcType="VARCHAR"/>
-            <result property="tagIds" column="tags" jdbcType="VARCHAR"/>
-            <result property="avatar" column="avatar" jdbcType="VARCHAR"/>
-            <result property="isVip" column="isVip" jdbcType="OTHER"/>
-            <result property="isDeleted" column="isDeleted" jdbcType="OTHER"/>
-            <result property="createdTime" column="createdTime" jdbcType="TIMESTAMP"/>
-            <result property="modifiedTime" column="modifiedTime" jdbcType="TIMESTAMP"/>
+        <id property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="username" column="username" jdbcType="VARCHAR"/>
+        <result property="password" column="password" jdbcType="VARCHAR"/>
+        <result property="gender" column="gender" jdbcType="OTHER"/>
+        <result property="birthday" column="birthday" jdbcType="DATE"/>
+        <result property="phone" column="phone" jdbcType="VARCHAR"/>
+        <result property="email" column="email" jdbcType="VARCHAR"/>
+        <result property="tagIds" column="tags" jdbcType="VARCHAR"/>
+        <result property="avatar" column="avatar" jdbcType="VARCHAR"/>
+        <result property="isVip" column="isVip" jdbcType="OTHER"/>
+        <result property="isDeleted" column="isDeleted" jdbcType="OTHER"/>
+        <result property="createdTime" column="createdTime" jdbcType="TIMESTAMP"/>
+        <result property="modifiedTime" column="modifiedTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <resultMap id="UserInfoMap" type="top.kkuily.xingbackend.model.dto.response.user.UserInfoResDTO">
+        <id property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="username" column="username" jdbcType="VARCHAR"/>
+        <result property="gender" column="gender" jdbcType="OTHER"/>
+        <result property="birthday" column="birthday" jdbcType="DATE"/>
+        <result property="phone" column="phone" jdbcType="VARCHAR"/>
+        <result property="email" column="email" jdbcType="VARCHAR"/>
+        <result property="tagIds" column="tagIds" jdbcType="VARCHAR"/>
+        <result property="tags" column="tags" jdbcType="VARCHAR"/>
+        <result property="avatar" column="avatar" jdbcType="VARCHAR"/>
+        <result property="isVip" column="isVip" jdbcType="OTHER"/>
+        <result property="isDeleted" column="isDeleted" jdbcType="TIMESTAMP"/>
+        <result property="createdTime" column="createdTime" jdbcType="TIMESTAMP"/>
+        <result property="modifiedTime" column="modifiedTime" jdbcType="TIMESTAMP"/>
     </resultMap>
 
     <sql id="Base_Column_List">
@@ -27,4 +43,171 @@
         isVip,isDeleted,createdTime,
         modifiedTime
     </sql>
+
+    <!--带分页的查询根语句-->
+    <sql id="UserListWithLimitBaseQuery">
+        SELECT u.id,
+               u.username,
+               u.birthday,
+               u.phone,
+               u.email,
+               u.createdTime,
+               u.modifiedTime,
+               u.gender,
+               u.tagIds,
+               u.isVip,
+               u.isDeleted
+        FROM user u
+    </sql>
+
+    <!--不带分页的查询根语句-->
+    <sql id="UserListWithNotLimitBaseQuery">
+        SELECT COUNT(*)
+        FROM user u
+    </sql>
+
+    <!--带分页的查询语句-->
+    <select id="listUsersWithLimit" resultMap="UserInfoMap">
+        <include refid="UserListWithLimitBaseQuery"/>
+
+        <where>
+            <if test="params.id != null">
+                AND u.id = #{params.id}
+            </if>
+            <if test="params.username != null and params.username != ''">
+                AND u.username LIKE CONCAT("%", #{params.username}, "%")
+            </if>
+            <if test="params.phone != null and params.phone != ''">
+                AND u.phone LIKE CONCAT("%", #{params.phone}, "%")
+            </if>
+            <if test="params.email != null and params.email != ''">
+                AND u.email LIKE CONCAT("%", #{params.email}, "%")
+            </if>
+            <if test="params.birthday != null">
+                AND u.birthday BETWEEN #{params.birthday.startTime} AND #{params.birthday.endTime}
+            </if>
+            <if test="params.createdTime != null">
+                AND u.createdTime BETWEEN #{params.createdTime.startTime} AND #{params.createdTime.endTime}
+            </if>
+            <if test="params.modifiedTime != null">
+                AND u.modifiedTime BETWEEN #{params.modifiedTime.startTime} AND #{params.modifiedTime.endTime}
+            </if>
+
+            <if test="filter.gender != null">
+                AND u.gender = #{filter.gender}
+            </if>
+            <if test="filter.tagIds != null">
+                AND u.tagIds IN
+                <foreach item="item" index="index" collection="filter.tagIds" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="filter.isVip != null">
+                AND u.isVip = #{filter.isVip}
+            </if>
+            <if test="filter.isDeleted != null">
+                AND u.isDeleted = #{filter.isDeleted}
+            </if>
+        </where>
+        <if test="sort.birthday != null">
+            ORDER BY u.birthday
+            <choose>
+                <when test="'ascend'.equals(sort.birthday)">
+                    ASC
+                </when>
+                <otherwise>
+                    DESC
+                </otherwise>
+            </choose>
+        </if>
+        <if test="sort.createdTime != null">
+            ORDER BY u.createdTime
+            <choose>
+                <when test="'ascend'.equals(sort.createdTime)">
+                    ASC
+                </when>
+                <otherwise>
+                    DESC
+                </otherwise>
+            </choose>
+        </if>
+        <if test="sort.modifiedTime != null">
+            ORDER BY u.modifiedTime
+            <choose>
+                <when test="'ascend'.equals(sort.modifiedTime)">
+                    ASC
+                </when>
+                <otherwise>
+                    DESC
+                </otherwise>
+            </choose>
+        </if>
+        LIMIT #{page.current}, #{page.pageSize}
+    </select>
+
+    <!--不带分页的查询语句-->
+    <select id="listUsersWithNotLimit" resultType="java.lang.Integer">
+        <include refid="UserListWithNotLimitBaseQuery"/>
+
+        <where>
+            <if test="params.birthday != null">
+                AND u.birthday BETWEEN #{params.birthday.startTime} AND #{params.birthday.endTime}
+            </if>
+            <if test="params.createdTime != null">
+                AND u.createdTime BETWEEN #{params.createdTime.startTime} AND #{params.createdTime.endTime}
+            </if>
+            <if test="params.modifiedTime != null">
+                AND u.modifiedTime BETWEEN #{params.modifiedTime.startTime} AND #{params.modifiedTime.endTime}
+            </if>
+
+            <if test="filter.gender != null">
+                AND u.gender = #{filter.gender}
+            </if>
+            <if test="filter.tagIds != null">
+                AND u.tagIds IN
+                <foreach item="item" index="index" collection="filter.tagIds" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="filter.isVip != null">
+                AND u.isVip = #{filter.isVip}
+            </if>
+            <if test="filter.isDeleted != null">
+                AND u.isDeleted = #{filter.isDeleted}
+            </if>
+        </where>
+        <if test="sort.birthday != null">
+            ORDER BY u.birthday
+            <choose>
+                <when test="'ascend'.equals(sort.birthday)">
+                    ASC
+                </when>
+                <otherwise>
+                    DESC
+                </otherwise>
+            </choose>
+        </if>
+        <if test="sort.createdTime != null">
+            ORDER BY u.createdTime
+            <choose>
+                <when test="'ascend'.equals(sort.createdTime)">
+                    ASC
+                </when>
+                <otherwise>
+                    DESC
+                </otherwise>
+            </choose>
+        </if>
+        <if test="sort.modifiedTime != null">
+            ORDER BY u.modifiedTime
+            <choose>
+                <when test="'ascend'.equals(sort.modifiedTime)">
+                    ASC
+                </when>
+                <otherwise>
+                    DESC
+                </otherwise>
+            </choose>
+        </if>
+    </select>
 </mapper>

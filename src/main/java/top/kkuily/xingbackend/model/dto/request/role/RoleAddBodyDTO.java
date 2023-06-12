@@ -18,7 +18,7 @@ public class RoleAddBodyDTO {
     /**
      * 权限列表
      */
-    private String[] authList;
+    private String[] authIds;
 
     /**
      * 角色相关描述
@@ -26,7 +26,7 @@ public class RoleAddBodyDTO {
     private String description;
 
     /**
-     * 转换为本类静态方法
+     * 转换为本类方法
      *
      * @param role Role
      */

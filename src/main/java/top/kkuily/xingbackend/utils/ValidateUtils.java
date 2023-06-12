@@ -5,7 +5,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.regex.Pattern;
 
-import static top.kkuily.xingbackend.constant.commons.Api.PHONE_REG;
+import static top.kkuily.xingbackend.constant.commons.Pattern.EMAIL_REG;
+import static top.kkuily.xingbackend.constant.commons.Pattern.PHONE_REG;
 
 /**
  * 验证工具
@@ -68,6 +69,18 @@ public class ValidateUtils {
     public static void validateMobile(String fieldName, String value) {
         ValidateUtils.validateNotEmpty(fieldName, value);
         if (!Pattern.matches(PHONE_REG, value)) {
+            throw new IllegalArgumentException(fieldName + "格式不正确");
+        }
+    }
+
+    /**
+     * @param value     String
+     * @param fieldName String
+     * @description 验证邮箱的合法性
+     */
+    public static void validateMail(String fieldName, String value) {
+        ValidateUtils.validateNotEmpty(fieldName, value);
+        if (!Pattern.matches(EMAIL_REG, value)) {
             throw new IllegalArgumentException(fieldName + "格式不正确");
         }
     }

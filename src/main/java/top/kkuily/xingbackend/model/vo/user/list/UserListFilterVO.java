@@ -15,7 +15,7 @@ public class UserListFilterVO {
     private String[] gender;
 
     /**
-     * 标签（例如：['前端'，'后端']）
+     * 标签（例如：[1, 2]）
      */
     private String[] tagIds;
 

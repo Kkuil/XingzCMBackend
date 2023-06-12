@@ -4,6 +4,7 @@ import cn.hutool.core.date.DateTime;
 import lombok.Data;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author 小K
@@ -21,14 +22,19 @@ public class AdminAuthInfoResDTO {
     private String name;
 
     /**
-     * 管理员身份ID
+     * 角色名
      */
-    private String roleId;
+    private String roleDescription;
 
     /**
-     * 部门ID
+     * 角色所拥有的权限路由（例如：['user-manage', 'admin-manage']）
      */
-    private String deptId;
+    private String authRoutes;
+
+    /**
+     * 部门名
+     */
+    private String deptName;
 
     /**
      * 手机号（例如：15712345674）
@@ -43,12 +49,12 @@ public class AdminAuthInfoResDTO {
     /**
      * 性别（0：女 1：男 2：未知）
      */
-    private int gender;
+    private Integer gender;
 
     /**
      * 创建时间
      */
-      private Date createdTime;
+    private Date createdTime;
 
     /**
      * 最后一次修改时间（ON UPDATE CURRENT_TIMESTAMP）

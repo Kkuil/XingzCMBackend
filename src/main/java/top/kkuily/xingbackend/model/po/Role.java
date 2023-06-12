@@ -33,7 +33,7 @@ public class Role implements Serializable {
     /**
      * 权限列表
      */
-    private String authList;
+    private String authIds;
 
     /**
      * 角色相关描述

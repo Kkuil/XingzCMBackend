@@ -36,7 +36,12 @@ public class AdminAddBodyDTO {
     private String deptId;
 
     /**
-     * 转换为本类静态方法
+     * 头像URL
+     */
+    private String avatar;
+
+    /**
+     * 转换为本类方法
      *
      * @param admin Admin
      */

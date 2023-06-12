@@ -6,20 +6,175 @@
 
     <resultMap id="BaseResultMap" type="top.kkuily.xingbackend.model.po.Article">
         <id property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="userId" column="userId" jdbcType="VARCHAR"/>
         <result property="title" column="title" jdbcType="VARCHAR"/>
         <result property="content" column="content" jdbcType="VARCHAR"/>
         <result property="statusId" column="statusId" jdbcType="INTEGER"/>
         <result property="cover" column="cover" jdbcType="VARCHAR"/>
-        <result property="tags" column="tags" jdbcType="OTHER"/>
         <result property="isDeleted" column="isDeleted" jdbcType="OTHER"/>
         <result property="createdTime" column="createdTime" jdbcType="TIMESTAMP"/>
         <result property="modifiedTime" column="modifiedTime" jdbcType="TIMESTAMP"/>
     </resultMap>
 
+    <resultMap id="ArticleInfoMap" type="top.kkuily.xingbackend.model.dto.response.article.ArticleInfoResDTO">
+        <id property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="username" column="username" jdbcType="VARCHAR"/>
+        <result property="title" column="title" jdbcType="VARCHAR"/>
+        <result property="content" column="content" jdbcType="VARCHAR"/>
+        <result property="categoryIds" column="categoryIds" jdbcType="INTEGER"/>
+        <result property="statusId" column="statusId" jdbcType="INTEGER"/>
+        <result property="cover" column="cover" jdbcType="VARCHAR"/>
+        <result property="isDeleted" column="isDeleted" jdbcType="VARCHAR"/>
+        <result property="createdTime" column="createdTime" jdbcType="TIMESTAMP"/>
+        <result property="modifiedTime" column="modifiedTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
     <sql id="Base_Column_List">
-        id,title,content,
-        statusId,cover,
-        tags,isDeleted,createdTime,
-        modifiedTime
+        id,userId,title,
+        content,statusId,
+        cover,isDeleted,
+        createdTime,modifiedTime
     </sql>
+
+    <!--带分页的查询根语句-->
+    <sql id="ArticleListWithLimitBaseQuery">
+        SELECT a.id,
+               a.userId,
+               u.username,
+               a.title,
+               a.content,
+               a.categoryIds,
+               a.statusId,
+               a.cover,
+               a.isDeleted,
+               a.createdTime,
+               a.modifiedTime
+        FROM article a
+                 JOIN article_status on a.statusId = article_status.id
+                 JOIN user u ON a.userId = u.id
+                 JOIN article_statistic ast ON ast.id = a.id
+    </sql>
+
+    <!--不带分页的查询根语句-->
+    <sql id="ArticleListWithNotLimitBaseQuery">
+        SELECT COUNT(*)
+        FROM article a
+                 JOIN article_status on a.statusId = article_status.id
+                 JOIN user u ON a.userId = u.id
+                 JOIN article_statistic ast ON ast.id = a.id
+    </sql>
+
+    <!--带分页的查询语句-->
+    <select id="listArticlesWithLimit" resultMap="ArticleInfoMap">
+        <include refid="ArticleListWithLimitBaseQuery"/>
+
+        <where>
+            <if test="params.userId != null and params.userId != ''">
+                AND a.userId LIKE CONCAT("%", #{params.userId}, "%")
+            </if>
+            <if test="params.username != null and params.username != ''">
+                AND u.username LIKE CONCAT("%", #{params.username}, "%")
+            </if>
+            <if test="params.title != null and params.title != ''">
+                AND a.title LIKE CONCAT("%", #{params.title}, "%")
+            </if>
+            <if test="params.content != null and params.content != ''">
+                AND a.content LIKE CONCAT("%", #{params.content}, "%")
+            </if>
+
+            <if test="filter.statusIds != null">
+                AND a.statusId IN
+                <foreach item="statusId" index="index" collection="filter.statusIds" open="(" separator="," close=")">
+                    #{statusId}
+                </foreach>
+            </if>
+
+            <if test="params.createdTime != null">
+                AND a.createdTime BETWEEN #{params.createdTime.startTime} AND #{params.createdTime.endTime}
+            </if>
+            <if test="params.modifiedTime != null">
+                AND a.modifiedTime BETWEEN #{params.modifiedTime.startTime} AND #{params.modifiedTime.endTime}
+            </if>
+        </where>
+        <if test="sort.createdTime != null">
+            ORDER BY a.createdTime
+            <choose>
+                <when test="'ascend'.equals(sort.createdTime)">
+                    ASC
+                </when>
+                <otherwise>
+                    DESC
+                </otherwise>
+            </choose>
+        </if>
+        <if test="sort.modifiedTime != null">
+            ORDER BY a.modifiedTime
+            <choose>
+                <when test="'ascend'.equals(sort.modifiedTime)">
+                    ASC
+                </when>
+                <otherwise>
+                    DESC
+                </otherwise>
+            </choose>
+        </if>
+        LIMIT #{page.current}, #{page.pageSize}
+    </select>
+
+    <!--带分页的查询语句-->
+    <select id="listArticlesWithNotLimit" resultType="java.lang.Integer">
+        <include refid="ArticleListWithNotLimitBaseQuery"/>
+
+        <where>
+            <if test="params.userId != null and params.userId != ''">
+                AND a.userId LIKE CONCAT("%", #{params.userId}, "%")
+            </if>
+            <if test="params.username != null and params.username != ''">
+                AND u.username LIKE CONCAT("%", #{params.username}, "%")
+            </if>
+            <if test="params.title != null and params.title != ''">
+                AND a.title LIKE CONCAT("%", #{params.title}, "%")
+            </if>
+            <if test="params.content != null and params.content != ''">
+                AND a.content LIKE CONCAT("%", #{params.content}, "%")
+            </if>
+
+            <if test="filter.statusIds != null">
+                AND a.statusId IN
+                <foreach item="statusId" index="index" collection="filter.statusIds" open="(" separator="," close=")">
+                    #{statusId}
+                </foreach>
+            </if>
+
+
+            <if test="params.createdTime != null">
+                AND a.createdTime BETWEEN #{params.createdTime.startTime} AND #{params.createdTime.endTime}
+            </if>
+            <if test="params.modifiedTime != null">
+                AND a.modifiedTime BETWEEN #{params.modifiedTime.startTime} AND #{params.modifiedTime.endTime}
+            </if>
+        </where>
+        <if test="sort.createdTime != null">
+            ORDER BY a.createdTime
+            <choose>
+                <when test="'ascend'.equals(sort.createdTime)">
+                    ASC
+                </when>
+                <otherwise>
+                    DESC
+                </otherwise>
+            </choose>
+        </if>
+        <if test="sort.modifiedTime != null">
+            ORDER BY a.modifiedTime
+            <choose>
+                <when test="'ascend'.equals(sort.modifiedTime)">
+                    ASC
+                </when>
+                <otherwise>
+                    DESC
+                </otherwise>
+            </choose>
+        </if>
+    </select>
 </mapper>

@@ -1,7 +1,10 @@
 package top.kkuily.xingbackend.mapper;
 
+import org.apache.ibatis.annotations.Param;
 import top.kkuily.xingbackend.model.po.Auth;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+
+import java.util.List;
 
 /**
 * @author 小K
@@ -10,9 +13,10 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 * @Entity top.kkuily.xingbackend.model.po.Auth
 */
 public interface AuthMapper extends BaseMapper<Auth> {
-
+    /**
+     * @param ids String
+     * @return List<String>
+     * @description 通过多个权限id查询标权限名
+     */
+    List<String> findAuthDescriptionListByBatchId(@Param("ids") List<String> ids);
 }
-
-
-
-

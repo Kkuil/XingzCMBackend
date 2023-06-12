@@ -9,7 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import top.kkuily.xingbackend.model.dto.request.admin.AdminLoginAccountBodyDTO;
 import top.kkuily.xingbackend.service.IAdminService;
 import top.kkuily.xingbackend.utils.Result;
-import top.kkuily.xingbackend.web.controller.AdminController;
+import top.kkuily.xingbackend.web.controller.admin.AdminController;
 
 import java.io.BufferedReader;
 import java.io.IOException;

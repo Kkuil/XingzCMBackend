@@ -6,8 +6,19 @@
 
     <resultMap id="BaseResultMap" type="top.kkuily.xingbackend.model.po.Role">
         <id property="id" column="id" jdbcType="VARCHAR"/>
-        <id property="rolename" column="roleName" jdbcType="VARCHAR"/>
-        <result property="authlist" column="authList" jdbcType="OTHER"/>
+        <id property="roleName" column="roleName" jdbcType="VARCHAR"/>
+        <result property="authIds" column="authIds" jdbcType="OTHER"/>
+        <result property="description" column="description" jdbcType="VARCHAR"/>
+        <result property="isDeleted" column="isDeleted" jdbcType="OTHER"/>
+        <result property="createdTime" column="createdTime" jdbcType="TIMESTAMP"/>
+        <result property="modifiedTime" column="modifiedTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <resultMap id="RoleInfoMap" type="top.kkuily.xingbackend.model.dto.response.role.RoleInfoResDTO">
+        <id property="id" column="id" jdbcType="VARCHAR"/>
+        <id property="roleName" column="roleName" jdbcType="VARCHAR"/>
+        <result property="authIds" column="authIds" jdbcType="OTHER"/>
+        <result property="authList" column="authList" jdbcType="OTHER"/>
         <result property="description" column="description" jdbcType="VARCHAR"/>
         <result property="isDeleted" column="isDeleted" jdbcType="OTHER"/>
         <result property="createdTime" column="createdTime" jdbcType="TIMESTAMP"/>
@@ -19,4 +30,121 @@
         description,isDeleted,createdTime,
         modifiedTime
     </sql>
+
+    <!--带分页的查询根语句-->
+    <sql id="RoleListWithLimitBaseQuery">
+        SELECT r.id,
+               r.roleName,
+               r.description,
+               r.authIds,
+               r.createdTime,
+               r.modifiedTime
+        FROM role r
+    </sql>
+
+    <!--不带分页的查询根语句-->
+    <sql id="RoleListWithNotLimitBaseQuery">
+        SELECT COUNT(*)
+        FROM role r
+    </sql>
+
+    <!--带分页的查询语句-->
+    <select id="listRolesWithLimit" resultMap="RoleInfoMap">
+        <include refid="RoleListWithLimitBaseQuery"/>
+
+        <where>
+            <if test="params.id != null">
+                AND r.id LIKE CONCAT("%", #{params.id}, "%")
+            </if>
+            <if test="params.roleName != null and params.roleName != ''">
+                AND r.roleName LIKE CONCAT("%", #{params.roleName}, "%")
+            </if>
+            <if test="params.description != null and params.description != ''">
+                AND r.description LIKE CONCAT("%", #{params.description}, "%")
+            </if>
+            <if test="params.createdTime != null">
+                AND r.createdTime BETWEEN #{params.createdTime.startTime} AND #{params.createdTime.endTime}
+            </if>
+            <if test="params.modifiedTime != null">
+                AND r.modifiedTime BETWEEN #{params.modifiedTime.startTime} AND #{params.modifiedTime.endTime}
+            </if>
+
+            <if test="filter.authList != null">
+                AND r.authList = #{filter.authList}
+            </if>
+        </where>
+        <if test="sort.createdTime != null">
+            ORDER BY r.createdTime
+            <choose>
+                <when test="'ascend'.equals(sort.createdTime)">
+                    ASC
+                </when>
+                <otherwise>
+                    DESC
+                </otherwise>
+            </choose>
+        </if>
+        <if test="sort.modifiedTime != null">
+            ORDER BY r.modifiedTime
+            <choose>
+                <when test="'ascend'.equals(sort.modifiedTime)">
+                    ASC
+                </when>
+                <otherwise>
+                    DESC
+                </otherwise>
+            </choose>
+        </if>
+        LIMIT #{page.current}, #{page.pageSize}
+    </select>
+
+    <!--不带分页的查询语句-->
+    <select id="listRolesWithNotLimit" resultType="java.lang.Integer">
+        <include refid="RoleListWithNotLimitBaseQuery"/>
+
+        <where>
+            <if test="params.id != null">
+                AND r.id LIKE CONCAT("%", #{params.id}, "%")
+            </if>
+            <if test="params.roleName != null and params.roleName != ''">
+                AND r.roleName LIKE CONCAT("%", #{params.roleName}, "%")
+            </if>
+            <if test="params.description != null and params.description != ''">
+                AND r.description LIKE CONCAT("%", #{params.description}, "%")
+            </if>
+            <if test="params.createdTime != null">
+                AND r.createdTime BETWEEN #{params.createdTime.startTime} AND #{params.createdTime.endTime}
+            </if>
+            <if test="params.modifiedTime != null">
+                AND r.modifiedTime BETWEEN #{params.modifiedTime.startTime} AND #{params.modifiedTime.endTime}
+            </if>
+
+            <if test="filter.authList != null">
+                AND r.authList = #{filter.authList}
+            </if>
+        </where>
+        <if test="sort.createdTime != null">
+            ORDER BY r.createdTime
+            <choose>
+                <when test="'ascend'.equals(sort.createdTime)">
+                    ASC
+                </when>
+                <otherwise>
+                    DESC
+                </otherwise>
+            </choose>
+        </if>
+        <if test="sort.modifiedTime != null">
+            ORDER BY r.modifiedTime
+            <choose>
+                <when test="'ascend'.equals(sort.modifiedTime)">
+                    ASC
+                </when>
+                <otherwise>
+                    DESC
+                </otherwise>
+            </choose>
+        </if>
+    </select>
+
 </mapper>

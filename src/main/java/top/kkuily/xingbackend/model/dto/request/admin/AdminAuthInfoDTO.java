@@ -46,7 +46,7 @@ public class AdminAuthInfoDTO {
     private String roleName;
 
     /**
-     * 角色所拥有的权限路由（例如：['/userManage', '/adminManage']）
+     * 角色所拥有的权限路由（例如：['user-manage', 'admin-manage']）
      */
     private List<String> authRoutes;
 

@@ -13,6 +13,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import top.kkuily.xingbackend.anotation.Permission;
+import top.kkuily.xingbackend.model.enums.AUTHEnums;
 import top.kkuily.xingbackend.mapper.AdminMapper;
 import top.kkuily.xingbackend.mapper.RoleMapper;
 import top.kkuily.xingbackend.model.po.Admin;
@@ -53,16 +54,12 @@ public class PermissionCheckInterceptor {
         assert attributes != null;
         // 获取请求对象
         HttpServletRequest request = attributes.getRequest();
+        // 获取方法体对象
         Method method = getMethod(joinPoint);
         if (method != null && !checkPermission(method, request)) {
             throw new SecurityException("Access denied");
         }
         return joinPoint.proceed();
-    }
-
-    private Method getMethod(ProceedingJoinPoint joinPoint) {
-        MethodSignature signature = (MethodSignature) joinPoint.getSignature();
-        return signature.getMethod();
     }
 
     public boolean checkPermission(Method method, HttpServletRequest request) {
@@ -74,11 +71,17 @@ public class PermissionCheckInterceptor {
             return true;
         } else {
             // 权限校验
-            return getCheckPermission(permission.authId(), request);
+            return authToken(permission.authId(), request);
         }
     }
 
-    public boolean getCheckPermission(int authId, HttpServletRequest request) {
+    /**
+     * @description token校验
+     * @param auth AUTHEnums
+     * @param request HttpServletRequest
+     * @return boolean
+     */
+    public boolean authToken(AUTHEnums auth, HttpServletRequest request) {
         // 1. 获取token
         String token = request.getHeader(ADMIN_TOKEN_KEY_IN_HEADER);
         // 2. 判空
@@ -111,15 +114,24 @@ public class PermissionCheckInterceptor {
             // 5. 验证是否有权限访问
             String roleId = admin.getRoleId();
             Role role = roleMapper.selectById(roleId);
-            String authList = role.getAuthList();
+            String authList = role.getAuthIds();
             String[] list = authList.split(",");
             log.info("PermissionCheck: {}", true);
             log.info("list: {}", (Object) list);
-            log.info("authId: {}", authId);
-            log.info("authId: {}", Arrays.binarySearch(list, String.valueOf(authId)));
-            return Arrays.binarySearch(list, String.valueOf(authId)) >= 0;
+            log.info("authId: {}", auth.getAuthId());
+            return Arrays.stream(list).anyMatch(authId -> String.valueOf(auth.getAuthId()).equals(authId));
         } catch (Exception e) {
             return false;
         }
+    }
+
+    /**
+     * @description 获取方法体对象
+     * @param joinPoint ProceedingJoinPoint
+     * @return Method
+     */
+    private Method getMethod(ProceedingJoinPoint joinPoint) {
+        MethodSignature signature = (MethodSignature) joinPoint.getSignature();
+        return signature.getMethod();
     }
 }

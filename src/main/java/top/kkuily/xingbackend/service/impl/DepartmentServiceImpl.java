@@ -15,7 +15,7 @@ import top.kkuily.xingbackend.model.vo.dept.list.DeptListSortVO;
 import top.kkuily.xingbackend.service.IDepartmentService;
 import top.kkuily.xingbackend.mapper.DepartmentMapper;
 import org.springframework.stereotype.Service;
-import top.kkuily.xingbackend.utils.ErrorType;
+import top.kkuily.xingbackend.constant.commons.MsgType;
 import top.kkuily.xingbackend.utils.Result;
 
 import java.util.List;
@@ -87,7 +87,7 @@ public class DepartmentServiceImpl extends ServiceImpl<DepartmentMapper, Departm
 
         // 附加：防爬虫
         if (page.getPageSize() >= MAX_COUNT_PER_LIST) {
-            return Result.fail(403, "爬虫无所遁形，禁止访问", ErrorType.REDIRECT);
+            return Result.fail(403, "爬虫无所遁形，禁止访问", MsgType.REDIRECT);
         }
 
         // 4. 分页查询

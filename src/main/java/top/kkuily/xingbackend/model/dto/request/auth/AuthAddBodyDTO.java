@@ -6,7 +6,7 @@ import top.kkuily.xingbackend.model.po.Auth;
 
 /**
  * @author 小K
- * @description 增加权限的DTO类
+ * @description 增加文章的DTO类
  */
 @Data
 public class AuthAddBodyDTO {
@@ -31,7 +31,7 @@ public class AuthAddBodyDTO {
     private String description;
 
     /**
-     * 转换为本类静态方法
+     * 转换为本类方法
      *
      * @param auth Auth
      */

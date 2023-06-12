@@ -2,6 +2,11 @@ package top.kkuily.xingbackend.service;
 
 import top.kkuily.xingbackend.model.po.Tag;
 import com.baomidou.mybatisplus.extension.service.IService;
+import top.kkuily.xingbackend.model.vo.ListParamsVO;
+import top.kkuily.xingbackend.model.vo.tag.list.TagListFilterVO;
+import top.kkuily.xingbackend.model.vo.tag.list.TagListParamsVO;
+import top.kkuily.xingbackend.model.vo.tag.list.TagListSortVO;
+import top.kkuily.xingbackend.utils.Result;
 
 /**
 * @author 小K
@@ -10,4 +15,5 @@ import com.baomidou.mybatisplus.extension.service.IService;
 */
 public interface ITagService extends IService<Tag> {
 
+    Result getList(ListParamsVO<TagListParamsVO, TagListSortVO, TagListFilterVO> listParams);
 }

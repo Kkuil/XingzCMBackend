@@ -24,11 +24,11 @@ mybatis-plus:
     configuration:
         map-underscore-to-camel-case: false
         log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
-    global-config:
-        db-config:
-            logic-delete-field: isDeleted
-            logic-delete-value: "1"
-            logic-not-delete-value: "0"
+#    global-config:
+#        db-config:
+#            logic-delete-field: isDeleted
+#            logic-delete-value: "1"
+#            logic-not-delete-value: "0"
 aliyun:
     # 阿里云短信服务
     sms:
@@ -36,10 +36,10 @@ aliyun:
         accessKeySecret: ecNSw2F78txmWAPUzP9yU0joVYLg9h
     # 阿里云oss对象存储服务
     oss:
+        endpoint: https://oss-cn-beijing.aliyuncs.com
         accessKeyId: LTAI5tJ9K46qWUoT9i66wcGD
         accessKeySecret: G4PEXxbZkWNGzHbdIzNfH41osLLTeJ
-        endpoint: oss-cn-beijing.aliyuncs.com
-        bucketName: xzwz-cm.oss-cn-beijing.aliyuncs.com
+        bucketName: xzwz-cm
 ## springdoc-openapi项目配置
 springdoc:
     swagger-ui:
@@ -53,5 +53,7 @@ springdoc:
             paths-to-match: '/**'
             packages-to-scan: top.kkuily.xingbackend.web.controller
 
-
-
+yuapi:
+    client:
+        access-key: 3pjpp7ptchej5wi0maxjcix4kdirlxyy
+        secret-key: nhr2q7fmnakztotlen3iy7hcyqpki295

@@ -5,17 +5,30 @@
 <mapper namespace="top.kkuily.xingbackend.mapper.AdminMapper">
 
     <resultMap id="BaseResultMap" type="top.kkuily.xingbackend.model.po.Admin">
-            <id property="id" column="id" jdbcType="VARCHAR"/>
-            <result property="name" column="name" jdbcType="VARCHAR"/>
-            <result property="password" column="password" jdbcType="VARCHAR"/>
-            <result property="roleId" column="roleId" jdbcType="VARCHAR"/>
-            <result property="deptId" column="deptId" jdbcType="VARCHAR"/>
-            <result property="phone" column="phone" jdbcType="VARCHAR"/>
-            <result property="avatar" column="avatar" jdbcType="VARCHAR"/>
-            <result property="gender" column="gender" jdbcType="OTHER"/>
-            <result property="isDeleted" column="isDeleted" jdbcType="OTHER"/>
-            <result property="createdTime" column="createdTime" jdbcType="TIMESTAMP"/>
-            <result property="modifiedTime" column="modifiedTime" jdbcType="TIMESTAMP"/>
+        <id property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <result property="password" column="password" jdbcType="VARCHAR"/>
+        <result property="roleId" column="roleId" jdbcType="VARCHAR"/>
+        <result property="deptId" column="deptId" jdbcType="VARCHAR"/>
+        <result property="phone" column="phone" jdbcType="VARCHAR"/>
+        <result property="avatar" column="avatar" jdbcType="VARCHAR"/>
+        <result property="gender" column="gender" jdbcType="OTHER"/>
+        <result property="isDeleted" column="isDeleted" jdbcType="OTHER"/>
+        <result property="createdTime" column="createdTime" jdbcType="TIMESTAMP"/>
+        <result property="modifiedTime" column="modifiedTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <resultMap id="AdminInfoMap" type="top.kkuily.xingbackend.model.dto.response.admin.AdminInfoResDTO">
+        <id property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <result property="roleDescription" column="roleDescription" jdbcType="VARCHAR"/>
+        <result property="deptName" column="deptName" jdbcType="VARCHAR"/>
+        <result property="phone" column="phone" jdbcType="VARCHAR"/>
+        <result property="avatar" column="avatar" jdbcType="VARCHAR"/>
+        <result property="gender" column="gender" jdbcType="OTHER"/>
+        <result property="isDeleted" column="isDeleted" jdbcType="TIMESTAMP"/>
+        <result property="createdTime" column="createdTime" jdbcType="TIMESTAMP"/>
+        <result property="modifiedTime" column="modifiedTime" jdbcType="TIMESTAMP"/>
     </resultMap>
 
     <sql id="Base_Column_List">
@@ -24,5 +37,162 @@
         gender,isDeleted,createdTime,
         modifiedTime
     </sql>
+
+    <select id="findAuthInfo" resultType="top.kkuily.xingbackend.model.dto.response.admin.AdminAuthInfoResDTO">
+        SELECT a.id           as id,
+               a.name         as name,
+               r.id           as roleId,
+               r.description  as roleDescription,
+               d.deptName     as deptName,
+               a.phone        as phone,
+               a.avatar       as avatar,
+               a.gender       as gender,
+               a.createdTime  as createdTime,
+               a.modifiedTime as modifiedTime
+        FROM admin a
+                 JOIN role r on a.roleId = r.id
+                 JOIN department d on a.deptId = d.id
+        WHERE a.id = #{id}
+    </select>
+
+    <!--带分页的查询根语句-->
+    <sql id="AdminListWithLimitBaseQuery">
+        SELECT a.id,
+               a.name,
+               r.description as roleDescription,
+               r.authIds,
+               d.deptName,
+               a.phone,
+               a.avatar,
+               a.gender,
+               a.createdTime,
+               a.modifiedTime
+        FROM admin a
+                 JOIN department d on d.id = a.deptId
+                 JOIN role r on r.id = a.roleId
+    </sql>
+
+    <!--不带分页的查询根语句-->
+    <sql id="AdminListWithNotLimitBaseQuery">
+        SELECT COUNT(*)
+        FROM admin a
+    </sql>
+
+    <!--带分页的查询语句-->
+    <select id="listAdminsWithLimit" resultMap="AdminInfoMap">
+        <include refid="AdminListWithLimitBaseQuery"/>
+
+        <where>
+            <if test="params.id != null and params.name != ''">
+                AND a.id LIKE CONCAT("%", #{params.id}, "%")
+            </if>
+            <if test="params.name != null and params.name != ''">
+                AND a.name LIKE CONCAT("%", #{params.name}, "%")
+            </if>
+            <if test="params.phone != null and params.phone != ''">
+                AND a.phone LIKE CONCAT("%", #{params.phone}, "%")
+            </if>
+            <if test="params.createdTime != null">
+                AND a.createdTime BETWEEN #{params.createdTime.startTime} AND #{params.createdTime.endTime}
+            </if>
+            <if test="params.modifiedTime != null">
+                AND a.modifiedTime BETWEEN #{params.modifiedTime.startTime} AND #{params.modifiedTime.endTime}
+            </if>
+
+            <if test="filter.gender != null">
+                AND a.gender = #{filter.gender}
+            </if>
+            <if test="filter.roleId != null">
+                AND a.roleId = #{filter.roleId}
+            </if>
+            <if test="filter.deptId != null">
+                AND a.deptId = #{filter.deptId}
+            </if>
+            <if test="filter.isDeleted != null">
+                AND a.isDeleted = #{filter.isDeleted}
+            </if>
+        </where>
+        <if test="sort.createdTime != null">
+            ORDER BY a.createdTime
+            <choose>
+                <when test="'ascend'.equals(sort.createdTime)">
+                    ASC
+                </when>
+                <otherwise>
+                    DESC
+                </otherwise>
+            </choose>
+        </if>
+        <if test="sort.modifiedTime != null">
+            ORDER BY a.modifiedTime
+            <choose>
+                <when test="'ascend'.equals(sort.modifiedTime)">
+                    ASC
+                </when>
+                <otherwise>
+                    DESC
+                </otherwise>
+            </choose>
+        </if>
+        LIMIT #{page.current}, #{page.pageSize}
+    </select>
+
+    <!--带分页的查询语句-->
+    <select id="listAdminsWithNotLimit" resultType="java.lang.Integer">
+        <include refid="AdminListWithNotLimitBaseQuery"/>
+
+        <where>
+            <if test="params.id != null and params.name.trim() != ''">
+                AND a.id LIKE CONCAT("%", #{params.id}, "%")
+            </if>
+            <if test="params.name != null and params.name.trim() != ''">
+                AND a.name LIKE CONCAT("%", #{params.name}, "%")
+            </if>
+            <if test="params.phone != null and params.phone.trim() != ''">
+                AND a.phone LIKE CONCAT("%", #{params.phone}, "%")
+            </if>
+            <if test="params.createdTime != null">
+                AND a.createdTime BETWEEN #{params.createdTime.startTime} AND #{params.createdTime.endTime}
+            </if>
+            <if test="params.modifiedTime != null">
+                AND a.modifiedTime BETWEEN #{params.modifiedTime.startTime} AND #{params.modifiedTime.endTime}
+            </if>
+
+            <if test="filter.gender != null">
+                AND a.gender = #{filter.gender}
+            </if>
+            <if test="filter.roleId != null">
+                AND a.roleId = #{filter.roleId}
+            </if>
+            <if test="filter.deptId != null">
+                AND a.deptId = #{filter.deptId}
+            </if>
+            <if test="filter.isDeleted != null">
+                AND a.isDeleted = #{filter.isDeleted}
+            </if>
+        </where>
+        <if test="sort.createdTime != null">
+            ORDER BY a.createdTime
+            <choose>
+                <when test="'ascend'.equals(sort.createdTime)">
+                    ASC
+                </when>
+                <otherwise>
+                    DESC
+                </otherwise>
+            </choose>
+        </if>
+        <if test="sort.modifiedTime != null">
+            ORDER BY a.modifiedTime
+            <choose>
+                <when test="'ascend'.equals(sort.modifiedTime)">
+                    ASC
+                </when>
+                <otherwise>
+                    DESC
+                </otherwise>
+            </choose>
+        </if>
+    </select>
 
 </mapper>

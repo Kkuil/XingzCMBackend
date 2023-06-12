@@ -26,7 +26,6 @@ public class AdminListParamsVO {
      */
     private String name;
 
-
     /**
      * 手机号（例如：15712345674）
      */

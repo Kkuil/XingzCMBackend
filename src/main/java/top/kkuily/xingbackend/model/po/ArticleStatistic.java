@@ -37,7 +37,12 @@ public class ArticleStatistic implements Serializable {
     /**
      * 评论文章的ID
      */
-    private String commentId;
+    private String commentIds;
+
+    /**
+     * 文章的标签ID
+     */
+    private String tagIds;
 
     /**
      * 是否逻辑删除(0：未删除 1：已删除)

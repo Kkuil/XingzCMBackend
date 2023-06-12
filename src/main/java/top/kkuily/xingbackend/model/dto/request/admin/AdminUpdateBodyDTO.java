@@ -43,7 +43,12 @@ public class AdminUpdateBodyDTO {
     /**
      * 性别
      */
-    private int gender;
+    private Integer gender;
+
+    /**
+     * 头像URL
+     */
+    private String avatar;
 
     public void convertTo(Admin admin) {
         BeanUtils.copyProperties(this, admin);

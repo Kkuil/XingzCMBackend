@@ -26,7 +26,7 @@ public class DeptAddBodyDTO {
     private String locationId;
 
     /**
-     * 转换为本类静态方法
+     * 转换为本类方法
      *
      * @param dept Department
      */

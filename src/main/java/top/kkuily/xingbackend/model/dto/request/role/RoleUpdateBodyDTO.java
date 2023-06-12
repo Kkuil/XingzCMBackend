@@ -2,6 +2,7 @@ package top.kkuily.xingbackend.model.dto.request.role;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import top.kkuily.xingbackend.model.po.Admin;
 import top.kkuily.xingbackend.model.po.Role;
@@ -10,7 +11,7 @@ import java.util.Date;
 
 /**
  * @author 小K
- * @description 删除管理员的传输数据
+ * @description 更新角色的传输数据
  */
 @Data
 public class RoleUpdateBodyDTO {
@@ -27,7 +28,7 @@ public class RoleUpdateBodyDTO {
     /**
      * 权限列表
      */
-    private String authList;
+    private String[] authIds;
 
     /**
      * 角色相关描述
