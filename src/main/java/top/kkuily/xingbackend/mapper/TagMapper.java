@@ -20,7 +20,8 @@ public interface TagMapper extends BaseMapper<Tag> {
      * @return List<String>
      * @description 通过多个标签id查询标签名
      */
-    List<String> findTagNameListByBatchId(@Param("ids") List<String> ids);
+    List<String> selectTagNameListByBatchId(@Param("ids") List<String> ids);
+
 }
 
 

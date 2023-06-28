@@ -1,11 +1,8 @@
 package top.kkuily.xingbackend.model.dto.request.user;
 
 import lombok.Data;
-import org.apache.tomcat.util.buf.StringUtils;
 import org.springframework.beans.BeanUtils;
 import top.kkuily.xingbackend.model.po.User;
-
-import java.util.List;
 
 /**
  * @author 小K
@@ -58,8 +55,5 @@ public class UserAddBodyDTO {
      */
     public void convertTo(User user) {
         BeanUtils.copyProperties(this, user);
-        if (this.getTagIds() != null) {
-            user.setTagIds(StringUtils.join(List.of(this.getTagIds()), ','));
-        }
     }
 }

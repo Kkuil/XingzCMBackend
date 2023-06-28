@@ -18,5 +18,5 @@ public interface AuthMapper extends BaseMapper<Auth> {
      * @return List<String>
      * @description 通过多个权限id查询标权限名
      */
-    List<String> findAuthDescriptionListByBatchId(@Param("ids") List<String> ids);
+    List<String> selectAuthDescriptionListByBatchId(@Param("ids") List<String> ids);
 }

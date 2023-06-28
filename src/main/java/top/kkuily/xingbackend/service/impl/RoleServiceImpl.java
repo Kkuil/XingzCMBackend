@@ -20,6 +20,8 @@ import top.kkuily.xingbackend.utils.Result;
 import java.util.Arrays;
 import java.util.List;
 
+import static top.kkuily.xingbackend.constant.commons.Global.SPLITOR;
+
 /**
  * @author 小K
  * @description 针对表【role】的数据库操作Service实现
@@ -65,8 +67,8 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements IR
             for (int i = 0; i < roleInfoResDTO.size(); i++) {
                 String authIds = roleInfoResDTO.get(i).getAuthIds();
                 if (authIds != null) {
-                    List<String> idsList = Arrays.asList(authIds.split(","));
-                    List<String> auths = authMapper.findAuthDescriptionListByBatchId(idsList);
+                    List<String> idsList = Arrays.asList(authIds.split(SPLITOR));
+                    List<String> auths = authMapper.selectAuthDescriptionListByBatchId(idsList);
                     roleInfoResDTO.get(i).setAuthList(
                             auths.toString()
                                     .replace("[", "")

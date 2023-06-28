@@ -26,7 +26,6 @@
         <result property="phone" column="phone" jdbcType="VARCHAR"/>
         <result property="avatar" column="avatar" jdbcType="VARCHAR"/>
         <result property="gender" column="gender" jdbcType="OTHER"/>
-        <result property="isDeleted" column="isDeleted" jdbcType="TIMESTAMP"/>
         <result property="createdTime" column="createdTime" jdbcType="TIMESTAMP"/>
         <result property="modifiedTime" column="modifiedTime" jdbcType="TIMESTAMP"/>
     </resultMap>
@@ -38,7 +37,7 @@
         modifiedTime
     </sql>
 
-    <select id="findAuthInfo" resultType="top.kkuily.xingbackend.model.dto.response.admin.AdminAuthInfoResDTO">
+    <select id="selectAuthInfo" resultType="top.kkuily.xingbackend.model.dto.response.admin.AdminAuthInfoResDTO">
         SELECT a.id           as id,
                a.name         as name,
                r.id           as roleId,

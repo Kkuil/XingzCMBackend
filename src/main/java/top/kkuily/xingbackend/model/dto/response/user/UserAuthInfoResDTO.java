@@ -1,5 +1,6 @@
 package top.kkuily.xingbackend.model.dto.response.user;
 
+import io.swagger.models.auth.In;
 import lombok.Data;
 
 import java.util.Date;
@@ -22,7 +23,7 @@ public class UserAuthInfoResDTO {
     /**
      * 性别（0：女 1：男 2：未知）
      */
-    private int gender;
+    private Integer gender;
 
     /**
      * 生日（1970-01-01）
@@ -42,17 +43,17 @@ public class UserAuthInfoResDTO {
     /**
      * 标签（例如：[1，2]）
      */
-    private String tagIds;
+    private String tags;
 
     /**
-     * 默认头像
+     * 头像
      */
     private String avatar;
 
     /**
      * 是否为VIP用户（0：非会员 1：会员）
      */
-    private String isVip;
+    private Integer isVip;
 
     /**
      * 创建时间

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="top.kkuily.xingbackend.mapper.UserArticleMapper">
+
+    <resultMap id="BaseResultMap" type="top.kkuily.xingbackend.model.po.UserArticle">
+        <id property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="articleId" column="articleId" jdbcType="VARCHAR"/>
+        <result property="type" column="type" jdbcType="OTHER"/>
+        <result property="createdTime" column="createdTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,articleId,type,
+        createdTime
+    </sql>
+    <select id="selectSpecificTypeArticlesById" resultType="top.kkuily.xingbackend.model.bo.Article.ArticleLinkBO">
+        SELECT a.id,
+               a.title
+        FROM user_article AS ua
+                 JOIN article a ON ua.articleId = a.id
+        WHERE ua.id = #{userId}
+          AND ua.type = #{userArticleTypeEnums}
+        ORDER BY a.createdTime ASC
+        LIMIT #{skip}, #{pageSize}
+    </select>
+</mapper>

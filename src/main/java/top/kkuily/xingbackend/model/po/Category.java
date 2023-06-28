@@ -1,21 +1,21 @@
 package top.kkuily.xingbackend.model.po;
 
-import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+
 import java.io.Serializable;
 import java.util.Date;
+
 import lombok.Data;
 
 /**
- * 
  * @author 小K
- * @TableName article_category
+ * @TableName category
  */
-@TableName(value ="article_category")
+@TableName(value = "category")
 @Data
-public class ArticleCategory implements Serializable {
+public class Category implements Serializable {
     /**
      * 分类ID
      */

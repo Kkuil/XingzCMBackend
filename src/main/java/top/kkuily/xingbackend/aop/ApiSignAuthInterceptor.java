@@ -16,6 +16,7 @@ import top.kkuily.xingbackend.anotation.ApiSignAuth;
 import top.kkuily.xingbackend.utils.ApiSignAuthUtils;
 
 import java.lang.reflect.Method;
+import java.nio.file.AccessDeniedException;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -44,7 +45,7 @@ public class ApiSignAuthInterceptor {
         // 获取方法体对象
         Method method = getMethod(joinPoint);
         if (method != null && !checkSign(method, request)) {
-            throw new SecurityException("Access denied");
+            throw new AccessDeniedException("Access denied");
         }
         return joinPoint.proceed();
     }
@@ -77,10 +78,15 @@ public class ApiSignAuthInterceptor {
         String signValue = request.getHeader(SIGN_KEY_IN_HEADER);
 
         log.error("params: {}", sortedParams);
+        log.error("params: {}", sortedParams.toString().replaceAll("\\n", ""));
         log.error("signValue: {}", signValue);
 
         // 验证签名
-        boolean isValid = ApiSignAuthUtils.verifySignature(sortedParams.toString(), signValue, PUBLIC_KEY.replaceAll("\\s", ""));
+        boolean isValid = ApiSignAuthUtils.verifySignature(
+                sortedParams.toString().replaceAll("\\n", ""),
+                signValue,
+                PUBLIC_KEY.replaceAll("\\s", "")
+        );
 
         if (isValid) {
             // 判断是否被使用过，防止重放攻击

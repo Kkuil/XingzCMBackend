@@ -8,12 +8,12 @@
         <id property="id" column="id" jdbcType="VARCHAR"/>
         <result property="username" column="username" jdbcType="VARCHAR"/>
         <result property="password" column="password" jdbcType="VARCHAR"/>
-        <result property="gender" column="gender" jdbcType="OTHER"/>
+        <result property="gender" column="gender" jdbcType="TINYINT"/>
         <result property="birthday" column="birthday" jdbcType="DATE"/>
         <result property="phone" column="phone" jdbcType="VARCHAR"/>
         <result property="email" column="email" jdbcType="VARCHAR"/>
-        <result property="tagIds" column="tags" jdbcType="VARCHAR"/>
         <result property="avatar" column="avatar" jdbcType="VARCHAR"/>
+        <result property="bgCover" column="bgCover" jdbcType="VARCHAR"/>
         <result property="isVip" column="isVip" jdbcType="OTHER"/>
         <result property="isDeleted" column="isDeleted" jdbcType="OTHER"/>
         <result property="createdTime" column="createdTime" jdbcType="TIMESTAMP"/>
@@ -31,7 +31,6 @@
         <result property="tags" column="tags" jdbcType="VARCHAR"/>
         <result property="avatar" column="avatar" jdbcType="VARCHAR"/>
         <result property="isVip" column="isVip" jdbcType="OTHER"/>
-        <result property="isDeleted" column="isDeleted" jdbcType="TIMESTAMP"/>
         <result property="createdTime" column="createdTime" jdbcType="TIMESTAMP"/>
         <result property="modifiedTime" column="modifiedTime" jdbcType="TIMESTAMP"/>
     </resultMap>
@@ -39,7 +38,7 @@
     <sql id="Base_Column_List">
         id,username,password,
         gender,birthday,phone,
-        email,tagIds,avatar,
+        email,avatar,bgCover,
         isVip,isDeleted,createdTime,
         modifiedTime
     </sql>
@@ -54,9 +53,7 @@
                u.createdTime,
                u.modifiedTime,
                u.gender,
-               u.tagIds,
-               u.isVip,
-               u.isDeleted
+               u.isVip
         FROM user u
     </sql>
 
@@ -209,5 +206,46 @@
                 </otherwise>
             </choose>
         </if>
+    </select>
+
+    <!-- ================================================================ -->
+
+    <sql id="UserByIdBaseQuery">
+        SELECT u.id,
+               u.username,
+               CASE
+                   WHEN u.gender = 0 THEN '女'
+                   WHEN u.gender = 1 THEN '男'
+                   ELSE '未知'
+                   END                        AS gender,
+               u.birthday,
+               u.phone,
+               u.email,
+               u.avatar,
+               u.bgCover,
+               u.isVip,
+               CASE
+                   WHEN ur.points &lt;= 100 THEN 1
+                   WHEN ur.points &lt;= 200 THEN 2
+                   WHEN ur.points &lt;= 300 THEN 3
+                   WHEN ur.points &lt;= 400 THEN 4
+                   WHEN ur.points &lt;= 500 THEN 5
+                   WHEN ur.points &lt;= 600 THEN 6
+                   WHEN ur.points &lt;= 700 THEN 7
+                   ELSE 8
+                   END                        AS level,
+               DATEDIFF(NOW(), u.createdTime) AS joinDays,
+               #{id} = #{userId}              AS isSelf
+        FROM user u
+                 JOIN user_rank ur on u.id = ur.id
+        WHERE u.id = #{id}
+    </sql>
+
+    <!-- 根据id获取用户信息(主页个人中心) -->
+    <select
+            id="getUserById"
+            resultType="top.kkuily.xingbackend.model.dto.response.user.UserInfoWithCenterResDTO"
+    >
+        <include refid="UserByIdBaseQuery"/>
     </select>
 </mapper>

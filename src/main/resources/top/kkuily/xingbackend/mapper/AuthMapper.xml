@@ -20,7 +20,7 @@
         modifiedTime
     </sql>
 
-    <select id="findAuthDescriptionListByBatchId" resultType="java.lang.String">
+    <select id="selectAuthDescriptionListByBatchId" resultType="java.lang.String">
         SELECT description
         FROM auth a
         <where>

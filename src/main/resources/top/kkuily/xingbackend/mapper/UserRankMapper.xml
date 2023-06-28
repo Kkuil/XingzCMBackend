@@ -16,4 +16,41 @@
         id,points,isDeleted,
         createdTime,modifiedTime
     </sql>
+    <select
+            id="selectPageAndUserInfoWithLimit"
+            resultType="top.kkuily.xingbackend.model.dto.response.user_rank.UserRankInfoResDTO"
+    >
+        SELECT ur.id,
+               u.username,
+               ur.points,
+               u.avatar,
+               u.isVip,
+                CASE
+                    WHEN ur.points &lt;= 100 THEN 1
+                    WHEN ur.points &lt;= 200 THEN 2
+                    WHEN ur.points &lt;= 300 THEN 3
+                    WHEN ur.points &lt;= 400 THEN 4
+                    WHEN ur.points &lt;= 500 THEN 5
+                    WHEN ur.points &lt;= 600 THEN 6
+                    WHEN ur.points &lt;= 700 THEN 7
+                    ELSE 8
+                END AS level
+        FROM user_rank AS ur
+                 RIGHT JOIN user AS u on ur.id = u.id
+        ORDER BY ur.points
+        <choose>
+            <when test="sort == 0">
+                ASC
+            </when>
+            <otherwise>
+                DESC
+            </otherwise>
+        </choose>
+        LIMIT #{offset}, #{pageSize};
+    </select>
+    <select id="selectPageAndUserInfoWithNotLimit" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM user_rank ur
+                 LEFT JOIN user u on ur.id = u.id;
+    </select>
 </mapper>

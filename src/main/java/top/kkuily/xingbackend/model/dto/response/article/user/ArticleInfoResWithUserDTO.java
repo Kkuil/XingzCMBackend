@@ -1,4 +1,4 @@
-package top.kkuily.xingbackend.model.dto.response.article.admin;
+package top.kkuily.xingbackend.model.dto.response.article.user;
 
 import lombok.Data;
 
@@ -9,7 +9,7 @@ import java.util.Date;
  * @description 文章分页查询返回类
  */
 @Data
-public class ArticleInfoResWithAdminDTO {
+public class ArticleInfoResWithUserDTO {
     /**
      * 文章ID
      */
@@ -36,28 +36,38 @@ public class ArticleInfoResWithAdminDTO {
     private String content;
 
     /**
-     * 分类IDS
-     */
-    private String categoryIds;
-
-    /**
-     * 状态ID
-     */
-    private String statusId;
-
-    /**
      * 文章封面图
      */
     private String cover;
 
     /**
-     * 创建时间
+     * 喜欢数
      */
-    private Date createdTime;
+    private Integer likedCount;
 
     /**
-     * 最后一次修改时间（ON UPDATE CURRENT_TIMESTAMP）
+     * 收藏数
      */
-    private Date modifiedTime;
+    private Integer collectedCount;
+
+    /**
+     * 是否被喜欢
+     */
+    private Boolean isLiked;
+
+    /**
+     * 是否被收藏
+     */
+    private Boolean isCollected;
+
+    /**
+     * 评论数
+     */
+    private Integer commentCount;
+
+    /**
+     * 发布时间
+     */
+    private Date createdTime;
 
 }

@@ -1,4 +1,4 @@
-package top.kkuily.xingbackend.model.dto.request.article;
+package top.kkuily.xingbackend.model.dto.request.article.admin;
 
 import lombok.Data;
 import org.springframework.lang.Nullable;
@@ -38,7 +38,7 @@ public class ArticleAddBodyDTO {
     /**
      * 标签信息（例如：[1, 2, 3]记录了标签的ID）
      */
-    private String[] tagIds;
+    private String tagIds;
 
     /**
      * 转换为本类方法

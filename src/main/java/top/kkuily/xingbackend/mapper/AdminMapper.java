@@ -26,7 +26,7 @@ public interface AdminMapper extends BaseMapper<Admin> {
      * @return AdminAuthInfoResDTO
      * @description 验证操作
      */
-    AdminAuthInfoResDTO findAuthInfo(@Param("id") String id);
+    AdminAuthInfoResDTO selectAuthInfo(@Param("id") String id);
 
     /**
      * @param params AdminListParamsVO

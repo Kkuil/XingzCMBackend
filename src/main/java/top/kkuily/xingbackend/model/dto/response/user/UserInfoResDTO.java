@@ -22,7 +22,7 @@ public class UserInfoResDTO {
     /**
      * 性别（0：女 1：男 2：未知）
      */
-    private int gender;
+    private Integer gender;
 
     /**
      * 生日（1970-01-01）
@@ -45,11 +45,6 @@ public class UserInfoResDTO {
     private String tagIds;
 
     /**
-     * 标签（例如：["前端", "后端"]）
-     */
-    private String tags;
-
-    /**
      * 默认头像
      */
     private String avatar;
@@ -58,11 +53,6 @@ public class UserInfoResDTO {
      * 是否为VIP用户（0：非会员 1：会员）
      */
     private String isVip;
-
-    /**
-     * 是否逻辑删除
-     */
-    private String isDeleted;
 
     /**
      * 创建时间

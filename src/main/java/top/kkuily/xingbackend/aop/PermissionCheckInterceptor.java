@@ -13,7 +13,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import top.kkuily.xingbackend.anotation.Permission;
-import top.kkuily.xingbackend.model.enums.AUTHEnums;
+import top.kkuily.xingbackend.model.enums.AuthEnums;
 import top.kkuily.xingbackend.mapper.AdminMapper;
 import top.kkuily.xingbackend.mapper.RoleMapper;
 import top.kkuily.xingbackend.model.po.Admin;
@@ -24,6 +24,7 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 
 import static top.kkuily.xingbackend.constant.admin.Auth.*;
+import static top.kkuily.xingbackend.constant.commons.Global.SPLITOR;
 
 /**
  * @author 小K
@@ -77,11 +78,11 @@ public class PermissionCheckInterceptor {
 
     /**
      * @description token校验
-     * @param auth AUTHEnums
+     * @param auth AuthEnums
      * @param request HttpServletRequest
      * @return boolean
      */
-    public boolean authToken(AUTHEnums auth, HttpServletRequest request) {
+    public boolean authToken(AuthEnums auth, HttpServletRequest request) {
         // 1. 获取token
         String token = request.getHeader(ADMIN_TOKEN_KEY_IN_HEADER);
         // 2. 判空
@@ -115,7 +116,7 @@ public class PermissionCheckInterceptor {
             String roleId = admin.getRoleId();
             Role role = roleMapper.selectById(roleId);
             String authList = role.getAuthIds();
-            String[] list = authList.split(",");
+            String[] list = authList.split(SPLITOR);
             log.info("PermissionCheck: {}", true);
             log.info("list: {}", (Object) list);
             log.info("authId: {}", auth.getAuthId());

@@ -1,6 +1,6 @@
 package top.kkuily.xingbackend.service;
 
-import top.kkuily.xingbackend.model.po.ArticleCategory;
+import top.kkuily.xingbackend.model.po.Category;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**
@@ -8,6 +8,6 @@ import com.baomidou.mybatisplus.extension.service.IService;
 * @description 针对表【article_category】的数据库操作Service
 * @createDate 2023-06-12 19:59:27
 */
-public interface IArticleCategoryService extends IService<ArticleCategory> {
+public interface ICategoryService extends IService<Category> {
 
 }

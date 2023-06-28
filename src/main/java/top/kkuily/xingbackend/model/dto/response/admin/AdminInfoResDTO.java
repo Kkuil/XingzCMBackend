@@ -45,11 +45,6 @@ public class AdminInfoResDTO {
     private Integer gender;
 
     /**
-     * 是否逻辑删除
-     */
-    private String isDeleted;
-
-    /**
      * 创建时间
      */
     private Date createdTime;

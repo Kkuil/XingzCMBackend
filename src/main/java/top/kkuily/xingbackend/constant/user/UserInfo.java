@@ -19,9 +19,4 @@ public class UserInfo {
      * 用户名称默认前缀
      */
     public static final String USER_DEFAULT_NAME_PREFIX = "xingz_cm_";
-
-    /**
-     * 用户默认密码
-     */
-    public static final String USER_DEFAULT_PASSWORD = "xingz_cm_123456";
 }

@@ -3,36 +3,35 @@ package top.kkuily.xingbackend.web.controller.admin;
 import cn.hutool.core.lang.UUID;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import top.kkuily.xingbackend.anotation.AdminAuthToken;
-import top.kkuily.xingbackend.model.dto.request.article.ArticleAddBodyDTO;
-import top.kkuily.xingbackend.model.dto.request.article.ArticleUpdateBodyDTO;
+import top.kkuily.xingbackend.model.dto.request.article.admin.ArticleAddBodyDTO;
+import top.kkuily.xingbackend.model.dto.request.article.admin.ArticleUpdateBodyDTO;
 import top.kkuily.xingbackend.model.enums.ArticleCategoryEnums;
 import top.kkuily.xingbackend.model.enums.ArticleStatusEnums;
 import top.kkuily.xingbackend.model.enums.IsDeletedEnums;
 import top.kkuily.xingbackend.model.po.Article;
-import top.kkuily.xingbackend.model.po.ArticleStatistic;
 import top.kkuily.xingbackend.model.po.ArticleStatus;
 import top.kkuily.xingbackend.model.vo.ListPageVO;
 import top.kkuily.xingbackend.model.vo.ListParamsVO;
 import top.kkuily.xingbackend.model.vo.article.list.ArticleListFilterVO;
 import top.kkuily.xingbackend.model.vo.article.list.ArticleListParamsVO;
 import top.kkuily.xingbackend.model.vo.article.list.ArticleListSortVO;
-import top.kkuily.xingbackend.service.IArticleCategoryService;
-import top.kkuily.xingbackend.service.IArticleService;
+import top.kkuily.xingbackend.service.*;
 import top.kkuily.xingbackend.constant.commons.MsgType;
-import top.kkuily.xingbackend.service.IArticleStatisticService;
-import top.kkuily.xingbackend.service.IArticleStatusService;
 import top.kkuily.xingbackend.utils.Result;
 import top.kkuily.xingbackend.utils.ValidateUtils;
-
-import java.util.Arrays;
+import top.kkuily.xingbackend.model.po.ArticleCategory;
+import top.kkuily.xingbackend.model.po.ArticleTag;
 
 import static top.kkuily.xingbackend.constant.aritcle.ArticleInfo.*;
+import static top.kkuily.xingbackend.constant.commons.Global.SPLITOR;
 
 /**
  * @author 小K
@@ -46,13 +45,13 @@ public class ArticleController {
     private IArticleService articleService;
 
     @Resource
-    private IArticleStatusService statusService;
-
-    @Resource
-    private IArticleStatisticService articleStatisticService;
+    private IArticleStatusService articleStatusService;
 
     @Resource
     private IArticleCategoryService articleCategoryService;
+
+    @Resource
+    private IArticleTagService articleTagService;
 
     /**
      * @param params ArticleListParamsVO
@@ -70,7 +69,7 @@ public class ArticleController {
         ArticleListFilterVO filterBean = JSONUtil.toBean(filter, ArticleListFilterVO.class);
         ListPageVO pageBean = JSONUtil.toBean(page, ListPageVO.class);
         ListParamsVO<ArticleListParamsVO, ArticleListSortVO, ArticleListFilterVO> listParams = new ListParamsVO<>(paramsBean, sortBean, filterBean, pageBean);
-        return articleService.getList(listParams);
+        return articleService.adminGetList(listParams);
     }
 
     // region
@@ -92,13 +91,13 @@ public class ArticleController {
             // 判长
             ValidateUtils.validateLength("标题", articleAddBodyDTO.getTitle(), ARTICLE_TITLE_LEN_RANGE[0], ARTICLE_TITLE_LEN_RANGE[1]);
             ValidateUtils.validateLength("内容", articleAddBodyDTO.getContent(), ARTICLE_CONTENT_LEN_RANGE[0], ARTICLE_CONTENT_LEN_RANGE[1]);
-            if (articleAddBodyDTO.getTagIds() != null && articleAddBodyDTO.getTagIds().length > ARTICLE_MAX_TAG_COUNT) {
+            if (!StringUtils.isEmpty(articleAddBodyDTO.getTagIds()) && articleAddBodyDTO.getTagIds().split(SPLITOR).length > ARTICLE_MAX_TAG_COUNT) {
                 throw new IllegalArgumentException("标签数量过多，请选择合适数量的标签");
             }
             // 查询statusId是否存在
             Integer statusId = articleAddBodyDTO.getStatusId();
             if (statusId != null) {
-                ArticleStatus articleStatus = statusService.getById(statusId);
+                ArticleStatus articleStatus = articleStatusService.getById(statusId);
                 if (articleStatus == null) {
                     throw new IllegalArgumentException("状态不存在，非法操作");
                 }
@@ -113,13 +112,16 @@ public class ArticleController {
         article.setId(articleId);
         boolean isArticleSave = articleService.save(article);
 
-        // 保存ArticleStatistic数据
-        ArticleStatistic articleStatistic = new ArticleStatistic();
-        articleStatistic.setId(articleId);
-        articleStatistic.setTagIds(Arrays.toString(articleAddBodyDTO.getTagIds()));
-        boolean isArticleStatisticSave = articleStatisticService.save(articleStatistic);
+        // 保存ArticleTag数据
+        String[] tags = articleAddBodyDTO.getTagIds().split(SPLITOR);
+        for (String tag : tags) {
+            ArticleTag articleTag = new ArticleTag();
+            articleTag.setId(articleId);
+            articleTag.setTagId(Integer.valueOf(tag));
+            articleTagService.save(articleTag);
+        }
 
-        if (isArticleSave && isArticleStatisticSave) {
+        if (isArticleSave) {
             return Result.success("文章发布成功", true);
         } else {
             return Result.fail(500, "文章发布失败", MsgType.ERROR_MESSAGE);
@@ -283,17 +285,21 @@ public class ArticleController {
             return Result.fail(403, "该文章不存在，请确认文章ID是否准确", MsgType.ERROR_MESSAGE);
         }
         // 判断该文章的状态是不是已经是已热门状态
-        String[] categoryIds = article.getCategoryIds().split(",");
+        QueryWrapper<ArticleCategory> articleQueryWrapper = new QueryWrapper<>();
+        articleQueryWrapper
+                .eq("id", id)
+                .eq("categoryId", ArticleCategoryEnums.HOT);
+        ArticleCategory ac = articleCategoryService.getOne(articleQueryWrapper);
 
-        boolean isHot = ArrayUtil.contains(categoryIds, String.valueOf(ArticleCategoryEnums.HOT.getValue()));
-        if (isHot) {
+        if (ac != null) {
             return Result.fail(403, "该文章分类已为已热门，请勿重复操作", MsgType.WARN_MESSAGE);
         }
+
         // 修改文状态为已热门
-        Article articleEntity = new Article();
-        articleEntity.setId(id);
-        articleEntity.setCategoryIds(StringUtils.join(categoryIds, ",") + "," + ArticleCategoryEnums.HOT.getValue());
-        boolean isUpdate = articleService.updateById(articleEntity);
+        ArticleCategory articleCategory = new ArticleCategory();
+        articleCategory.setId(id);
+        articleCategory.setCategoryId(String.valueOf(ArticleCategoryEnums.HOT));
+        boolean isUpdate = articleCategoryService.updateById(articleCategory);
         if (isUpdate) {
             return Result.success("已热门", true, MsgType.NOTIFICATION);
         } else {
@@ -314,16 +320,21 @@ public class ArticleController {
             return Result.fail(403, "该文章不存在，请确认文章ID是否准确", MsgType.ERROR_MESSAGE);
         }
         // 判断该文章的状态是不是已经是已优质状态
-        String[] categoryIds = article.getCategoryIds().split(",");
-        boolean isHot = ArrayUtil.contains(categoryIds, String.valueOf(ArticleCategoryEnums.HIGH_QUALITY.getValue()));
-        if (isHot) {
+        QueryWrapper<ArticleCategory> articleQueryWrapper = new QueryWrapper<>();
+        articleQueryWrapper
+                .eq("id", id)
+                .eq("categoryId", ArticleCategoryEnums.HIGH_QUALITY);
+        ArticleCategory ac = articleCategoryService.getOne(articleQueryWrapper);
+
+        if (ac != null) {
             return Result.fail(403, "该文章分类已为已优质，请勿重复操作", MsgType.WARN_MESSAGE);
         }
-        // 修改文为已优质
-        Article articleEntity = new Article();
-        articleEntity.setId(id);
-        articleEntity.setCategoryIds(StringUtils.join(categoryIds, ",") + "," + ArticleCategoryEnums.HIGH_QUALITY.getValue());
-        boolean isUpdate = articleService.updateById(articleEntity);
+
+        // 修改文状态为已优质
+        ArticleCategory articleCategory = new ArticleCategory();
+        articleCategory.setId(id);
+        articleCategory.setCategoryId(String.valueOf(ArticleCategoryEnums.HIGH_QUALITY));
+        boolean isUpdate = articleCategoryService.updateById(articleCategory);
         if (isUpdate) {
             return Result.success("已优质", true, MsgType.NOTIFICATION);
         } else {

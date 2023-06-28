@@ -2,13 +2,12 @@ package top.kkuily.xingbackend.model.dto.response.user_rank;
 
 import lombok.Data;
 
-import java.util.Date;
-
 /**
  * @author 小K
+ * @description 用户等级信息
  */
 @Data
-public class UserInfoResDTO {
+public class UserRankInfoResDTO {
     /**
      * 用户ID
      */
@@ -20,32 +19,7 @@ public class UserInfoResDTO {
     private String username;
 
     /**
-     * 性别（0：女 1：男 2：未知）
-     */
-    private Integer gender;
-
-    /**
-     * 生日（1970-01-01）
-     */
-    private Date birthday;
-
-    /**
-     * 手机号
-     */
-    private String phone;
-
-    /**
-     * 邮箱
-     */
-    private String email;
-
-    /**
-     * 标签（例如：[1，2]）
-     */
-    private String tagIds;
-
-    /**
-     * 默认头像
+     * 头像
      */
     private String avatar;
 
@@ -55,13 +29,13 @@ public class UserInfoResDTO {
     private String isVip;
 
     /**
-     * 创建时间
+     * 用户等级
      */
-    private Date createdTime;
+    private Integer level;
 
     /**
-     * 最后一次修改时间（ON UPDATE CURRENT_TIMESTAMP）
+     * 用户积分
      */
-    private Date modifiedTime;
+    private Integer points;
 
 }

@@ -1,7 +1,6 @@
 package top.kkuily.xingbackend.model.dto.request.user;
 
 import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import top.kkuily.xingbackend.model.po.User;
 
@@ -60,6 +59,5 @@ public class UserUpdateBodyDTO {
      */
     public void convertTo(User user) {
         BeanUtils.copyProperties(this, user);
-        user.setTagIds(StringUtils.join(this.getTagIds(), ","));
     }
 }

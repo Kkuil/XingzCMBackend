@@ -23,6 +23,8 @@ import top.kkuily.xingbackend.utils.ValidateUtils;
 import java.util.Arrays;
 import java.util.List;
 
+import static top.kkuily.xingbackend.constant.commons.Global.SPLITOR;
+
 /**
  * @author 小K
  * @description 权限相关接口
@@ -166,7 +168,7 @@ public class AuthController {
     private Result getAuthWithIds(String ids) {
         String[] authIds;
         try {
-            authIds = StringUtils.split(ids, ",");
+            authIds = StringUtils.split(ids, SPLITOR);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

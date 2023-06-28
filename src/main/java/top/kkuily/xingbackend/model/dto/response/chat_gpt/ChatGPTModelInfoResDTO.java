@@ -26,11 +26,6 @@ public class ChatGPTModelInfoResDTO {
     private String cover;
 
     /**
-     * 是否逻辑删除
-     */
-    private String isDeleted;
-
-    /**
      * 创建时间
      */
     private Date createdTime;

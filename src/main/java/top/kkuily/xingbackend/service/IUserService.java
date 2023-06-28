@@ -2,11 +2,11 @@ package top.kkuily.xingbackend.service;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import top.kkuily.xingbackend.model.dto.request.admin.AdminLoginPhoneBodyDTO;
+import org.springframework.expression.AccessException;
 import top.kkuily.xingbackend.model.dto.request.user.UserLoginAccountBodyDTO;
 import top.kkuily.xingbackend.model.dto.request.user.UserLoginPhoneBodyDTO;
-import top.kkuily.xingbackend.model.po.User;
 import com.baomidou.mybatisplus.extension.service.IService;
+import top.kkuily.xingbackend.model.po.User;
 import top.kkuily.xingbackend.model.vo.ListParamsVO;
 import top.kkuily.xingbackend.model.vo.user.list.UserListFilterVO;
 import top.kkuily.xingbackend.model.vo.user.list.UserListParamsVO;
@@ -21,35 +21,42 @@ import top.kkuily.xingbackend.utils.Result;
 public interface IUserService extends IService<User> {
 
     /**
-     * @description 用户账号登录服务
-     * @author 小K
      * @param userLoginBody UserLoginAccountBodyDTO
      * @return Result
+     * @description 用户账号登录服务
+     * @author 小K
      */
     Result loginWithAccount(HttpServletResponse response, UserLoginAccountBodyDTO userLoginBody);
 
     /**
-     * @description 用户手机号登录服务
-     * @author 小K
      * @param userLoginPhoneBody UserLoginPhoneBodyDTO
      * @return Result
+     * @description 用户手机号登录服务
+     * @author 小K
      */
-    Result registryWithPhone(HttpServletResponse response, UserLoginPhoneBodyDTO userLoginPhoneBody);
+    Result loginRegistryWithPhone(HttpServletResponse response, UserLoginPhoneBodyDTO userLoginPhoneBody);
 
     /**
-     * @description 用户鉴权服务
-     * @author 小K
      * @param response HttpServletRequest
      * @return Result
+     * @description 用户鉴权服务
+     * @author 小K
      */
-    Result auth(HttpServletRequest response);
+    Result auth(HttpServletRequest response) throws AccessException;
 
     /**
-     * @description 分页查询
-     * @author 小K
      * @param userListParams UserListParams
      * @return Result
+     * @description 分页查询
+     * @author 小K
      */
     Result getList(ListParamsVO<UserListParamsVO, UserListSortVO, UserListFilterVO> userListParams);
 
+    /**
+     * @param id      String
+     * @param request HttpServletRequest
+     * @return Result
+     * @description 用户通过id获取信息服务接口
+     */
+    Result get(String id, HttpServletRequest request);
 }

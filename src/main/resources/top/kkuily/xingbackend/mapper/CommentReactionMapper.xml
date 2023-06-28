@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="top.kkuily.xingbackend.mapper.CommentReactionMapper">
+
+    <resultMap id="BaseResultMap" type="top.kkuily.xingbackend.model.po.CommentReaction">
+            <id property="id" column="id" jdbcType="OTHER"/>
+            <result property="commentId" column="commentId" jdbcType="OTHER"/>
+            <result property="userId" column="userId" jdbcType="VARCHAR"/>
+            <result property="reaction" column="reaction" jdbcType="OTHER"/>
+            <result property="createdTime" column="createdTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,commentId,userId,
+        reaction,createdTime
+    </sql>
+</mapper>

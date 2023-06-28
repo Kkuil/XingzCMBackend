@@ -9,8 +9,6 @@ import org.aspectj.lang.annotation.Aspect;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StopWatch;
 import jakarta.servlet.http.HttpServletRequest;
-import top.kkuily.xingbackend.model.po.Log;
-import top.kkuily.xingbackend.service.ILogService;
 
 import java.util.UUID;
 
@@ -25,9 +23,6 @@ public class LogInterceptor {
 
     @Resource
     private HttpServletRequest httpServletRequest;
-
-    @Resource
-    private ILogService logService;
 
     /**
      * @param point ProceedingJoinPoint
@@ -63,15 +58,6 @@ public class LogInterceptor {
                 params,
                 totalTimeMillis
         );
-        // 日志上报
-        Log logEntity = new Log();
-        logEntity.setId(id);
-        logEntity.setPath(path);
-        logEntity.setMethod(method);
-        logEntity.setIp(ip);
-        logEntity.setParams(params);
-        logEntity.setTotalTime(String.valueOf(totalTimeMillis));
-        logService.save(logEntity);
         return result;
     }
 }

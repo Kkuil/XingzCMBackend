@@ -1,5 +1,8 @@
 package top.kkuily.xingbackend.model.vo.article.detail;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.Data;
 
 import java.util.Date;
@@ -9,26 +12,31 @@ import java.util.Date;
  * @description 用户获取文章详情中文章的详情实体
  */
 @Data
-public class ArticleDetailInfoVO {
+public class CommentDetailInfoVO {
     /**
-     * 文章ID
+     * 评论ID
      */
-    private String id;
+    private Integer id;
 
     /**
-     * 标题
+     * 用户ID
      */
-    private String title;
+    private String userId;
 
     /**
-     * 内容
+     * 用户名
+     */
+    private String username;
+
+    /**
+     * 用户头像
+     */
+    private String avatar;
+
+    /**
+     * 评论内容
      */
     private String content;
-
-    /**
-     * 文章封面图
-     */
-    private String cover;
 
     /**
      * 喜欢数
@@ -36,17 +44,13 @@ public class ArticleDetailInfoVO {
     private Integer likedCount;
 
     /**
-     * 收藏数
+     * 不喜欢数
      */
-    private Integer collectedCount;
+    private Integer dislikedCount;
 
     /**
-     * 发布时间
+     * 创建时间
      */
     private Date createdTime;
 
-    /**
-     * 修改时间时间
-     */
-    private Date modifiedTime;
 }

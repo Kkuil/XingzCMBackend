@@ -1,14 +1,14 @@
-package top.kkuily.xingbackend.web.controller.admin;
+package top.kkuily.xingbackend.web.controller.user;
 
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
-import top.kkuily.xingbackend.anotation.AdminAuthToken;
+import top.kkuily.xingbackend.anotation.ApiSignAuth;
 import top.kkuily.xingbackend.constant.commons.MsgType;
 import top.kkuily.xingbackend.model.dto.response.ListResDTO;
-import top.kkuily.xingbackend.model.po.ArticleCategory;
-import top.kkuily.xingbackend.service.IArticleCategoryService;
+import top.kkuily.xingbackend.model.po.Category;
+import top.kkuily.xingbackend.service.ICategoryService;
 import top.kkuily.xingbackend.utils.Result;
 
 import java.util.List;
@@ -19,24 +19,24 @@ import java.util.List;
  */
 @RestController
 @Slf4j
-public class ArticleCategoryController {
+public class UArticleCategoryController {
 
     @Resource
-    private IArticleCategoryService articleCategoryService;
+    private ICategoryService articleCategoryService;
 
     /**
      * @return Result
      * @description 文章分类分页查询接口
      */
-    @GetMapping("article-category")
-    @AdminAuthToken
+    @GetMapping("uarticle-category")
+    @ApiSignAuth
     public Result getList() {
-        List<ArticleCategory> list = articleCategoryService.list();
-        ListResDTO<ArticleCategory> articleCategoryListResDTO = new ListResDTO<>();
+        List<Category> list = articleCategoryService.list();
+        ListResDTO<Category> articleCategoryListResDTO = new ListResDTO<>();
         articleCategoryListResDTO.setCurrent(1);
-        articleCategoryListResDTO.setPageSize(10);
+        articleCategoryListResDTO.setPageSize(list.size());
         articleCategoryListResDTO.setList(list);
-        articleCategoryListResDTO.setTotal(10);
-        return Result.success("获取成功", articleCategoryListResDTO, MsgType.NOTIFICATION);
+        articleCategoryListResDTO.setTotal(list.size());
+        return Result.success("获取成功", articleCategoryListResDTO, MsgType.SILENT);
     }
 }

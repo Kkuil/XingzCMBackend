@@ -1,4 +1,4 @@
-package top.kkuily.xingbackend.model.dto.request.article;
+package top.kkuily.xingbackend.model.dto.request.article.user;
 
 import lombok.Data;
 
@@ -11,7 +11,7 @@ public class UArticleListParamsDTO {
     /**
      * 标签
      */
-    private String tagId;
+    private Integer tagId;
 
     /**
      * 分类
@@ -21,10 +21,10 @@ public class UArticleListParamsDTO {
     /**
      * 当前页
      */
-    private int current;
+    private Integer current;
 
     /**
      * 当前页大小
      */
-    private int pageSize;
+    private Integer pageSize;
 }

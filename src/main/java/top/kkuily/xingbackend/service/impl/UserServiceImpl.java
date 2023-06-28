@@ -9,14 +9,19 @@ import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import top.kkuily.xingbackend.mapper.TagMapper;
+import org.springframework.expression.AccessException;
+import top.kkuily.xingbackend.mapper.UserRankMapper;
+import top.kkuily.xingbackend.mapper.UserTagMapper;
 import top.kkuily.xingbackend.model.dto.request.user.UserLoginAccountBodyDTO;
 import top.kkuily.xingbackend.model.dto.request.user.UserLoginPhoneBodyDTO;
 import top.kkuily.xingbackend.model.dto.response.ListResDTO;
 import top.kkuily.xingbackend.model.dto.response.user.UserAuthInfoResDTO;
 import top.kkuily.xingbackend.model.dto.response.user.UserInfoResDTO;
+import top.kkuily.xingbackend.model.dto.response.user.UserInfoWithCenterResDTO;
 import top.kkuily.xingbackend.model.po.User;
+import top.kkuily.xingbackend.model.po.UserRank;
 import top.kkuily.xingbackend.model.vo.ListPageVO;
 import top.kkuily.xingbackend.model.vo.ListParamsVO;
 import top.kkuily.xingbackend.model.vo.user.list.UserListFilterVO;
@@ -52,7 +57,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     private UserMapper userMapper;
 
     @Resource
-    private TagMapper tagMapper;
+    private UserTagMapper userTagMapper;
+
+    @Resource
+    private UserRankMapper userRankMapper;
 
     @Resource
     private StringRedisTemplate stringRedisTemplate;
@@ -75,11 +83,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         userWrapper.eq("username", username);
         User userInfo = this.getOne(userWrapper);
         if (userInfo == null) {
-            return Result.fail(400, "账号或密码错误，如果忘记密码，请使用手机号重置密码", MsgType.NOTIFICATION);
+            return Result.fail(400, "账号或密码错误，如果忘记密码，请使用手机号重置密码", MsgType.ERROR_MESSAGE);
         }
         // 2. 判断账号密码是否正确
         if (!userInfo.getUsername().equals(username) || !userInfo.getPassword().equals(password)) {
-            return Result.fail(400, "账号或密码错误，如果忘记密码，请使用手机号重置密码", MsgType.NOTIFICATION);
+            return Result.fail(400, "账号或密码错误，如果忘记密码，请使用手机号重置密码", MsgType.ERROR_MESSAGE);
         }
         // 3. 生成Token
         String token = saveTokenVersion(userInfo, true, new DefaultClaims());
@@ -96,7 +104,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
      * @description 用户使用手机号注册
      */
     @Override
-    public Result registryWithPhone(HttpServletResponse response, UserLoginPhoneBodyDTO userLoginPhoneBody) {
+    public Result loginRegistryWithPhone(HttpServletResponse response, UserLoginPhoneBodyDTO userLoginPhoneBody) {
         String phone = userLoginPhoneBody.getPhone();
         String sms = userLoginPhoneBody.getSms();
         if (phone == null) {
@@ -116,31 +124,47 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
                 userWrapper.eq("phone", phone);
                 User user = this.getOne(userWrapper);
                 if (user != null) {
-                    return Result.fail(401, "手机号已存在，请返回登录", MsgType.REDIRECT);
-                }
-                // 插入数据
-                User userInsert = new User();
-                // 设置默认用户名
-                userInsert.setUsername(USER_DEFAULT_NAME_PREFIX + UUID.randomUUID().toString().replace("-", "").substring(0, 8));
-                // 设置手机号
-                userInsert.setPhone(phone);
-                // 设置默认密码
-                userInsert.setPassword(CipherUtils.md5(USER_DEFAULT_PASSWORD));
-                int isInsert = userMapper.insert(userInsert);
-                log.error("inserted: {}", isInsert);
-                if (isInsert == 1) {
+                    // 1. 登录
                     // 生成token
-                    String token = saveTokenVersion(userInsert, true, new DefaultClaims());
+                    String token = saveTokenVersion(user, true, new DefaultClaims());
                     response.setHeader(USER_TOKEN_KEY_IN_HEADER, token);
-                    return Result.success("注册成功", true, MsgType.NOTIFICATION);
+                    return Result.success("登录成功", true, MsgType.NOTIFICATION);
                 } else {
-                    return Result.success("注册失败", false, MsgType.ERROR_MESSAGE);
+                    // 2. 注册
+                    // 插入数据
+                    User userInsert = new User();
+                    String uuid = UUID.randomUUID().toString().replace("-", "");
+                    // 生成随机ID
+                    userInsert.setId(uuid);
+                    // 设置默认用户名
+                    userInsert.setUsername(USER_DEFAULT_NAME_PREFIX + uuid.substring(0, 8));
+                    // 设置手机号
+                    userInsert.setPhone(phone);
+                    // 设置默认密码
+                    userInsert.setPassword(CipherUtils.md5(USER_DEFAULT_PASSWORD));
+                    // 保存用户
+                    int isInsertUser = userMapper.insert(userInsert);
+                    // 保存用户等级
+                    UserRank userRank = new UserRank();
+                    int isInsertUserRank = userRankMapper.insert(userRank);
+                    if (isInsertUser == 1 && isInsertUserRank == 1) {
+                        // 生成token
+                        // 获取用户id
+                        QueryWrapper<User> userQueryWrapper = new QueryWrapper<>();
+                        userQueryWrapper.eq("phone", phone);
+                        User newUser = userMapper.selectOne(userQueryWrapper);
+                        String token = saveTokenVersion(newUser, true, new DefaultClaims());
+                        response.setHeader(USER_TOKEN_KEY_IN_HEADER, token);
+                        return Result.success("注册成功", true, MsgType.NOTIFICATION);
+                    } else {
+                        return Result.success("注册失败", false, MsgType.ERROR_MESSAGE);
+                    }
                 }
             } else {
                 return Result.fail(403, "验证码错误，请重新输入", MsgType.ERROR_MESSAGE);
             }
         } else {
-            return Result.fail(403, "手机号格式错误，请检查手机号格式", MsgType.NOTIFICATION);
+            return Result.fail(403, "手机号格式错误，请检查手机号格式", MsgType.ERROR_MESSAGE);
         }
     }
 
@@ -150,10 +174,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
      * @description 用户鉴权服务
      */
     @Override
-    public Result auth(HttpServletRequest request) {
+    public Result auth(HttpServletRequest request) throws AccessException {
         // 1. 获取用户id
         String token = request.getHeader(USER_TOKEN_KEY_IN_HEADER);
-        // 1.1 验证token是否有效
+        // 1.1 判断是否有token
+        if (StringUtils.isEmpty(token)) {
+            throw new AccessException("token不能为空");
+        }
+
+        // 1.2 验证token是否有效
         Claims payload;
         try {
             payload = Token.parse(token, USER_TOKEN_SECRET);
@@ -161,7 +190,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             throw new IllegalArgumentException("无效Token");
         }
 
-        // 1.2 验证版本号是否有效
+        // 1.3 验证版本号是否有效
         String userId = payload.get("id").toString();
         String tokenVersion = payload.get("version").toString();
         String tokenKey = USER_TOKEN_VERSION_KEY + userId;
@@ -211,18 +240,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         int total = 0;
         try {
             userInfoResDTO = userMapper.listUsersWithLimit(params, sort, filter, listPageVO);
-            // 通过tagIds查询tags
             for (int i = 0; i < userInfoResDTO.size(); i++) {
-                String tagIds = userInfoResDTO.get(i).getTagIds();
-                if (tagIds != null) {
-                    List<String> idsList = Arrays.asList(tagIds.split(","));
-                    List tags = tagMapper.findTagNameListByBatchId(idsList);
-                    userInfoResDTO.get(i).setTags(
-                            tags.toString()
-                                    .replace("[", "")
-                                    .replace("]", "")
-                    );
-                }
+                String userId = userInfoResDTO.get(i).getId();
+                List<Integer> tagIds = userTagMapper.selectTagIdsById(userId);
+                userInfoResDTO.get(i).setTagIds(tagIds.toString());
             }
             total = userMapper.listUsersWithNotLimit(params, sort, filter, listPageVO);
         } catch (Exception e) {
@@ -248,10 +269,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         HashMap<String, Object> userInfoInToken = new HashMap<>();
         userInfoInToken.put("id", userInfo.getId());
         // 当前token版本号
-        String tokenVersion = isRegenerateVersion ? UUID.randomUUID().toString() : payload.get("version").toString();
-        userInfoInToken.put("version", tokenVersion);
+        String tokenVersion;
+        if (isRegenerateVersion) {
+            tokenVersion = UUID.randomUUID().toString();
+            userInfoInToken.put("version", tokenVersion);
+        } else {
+            tokenVersion = payload.get("version").toString();
+        }
         String token = Token.create(userInfoInToken, USER_TOKEN_SECRET);
-        // token 版本号key，为了防止token还在有效期内，但是密码已经被修改的情况
+        // token 版本号key，为了防止token还在有效期内，但是密码已经被修改或别人异地登录的情况
         String tokenVersionKey = USER_TOKEN_VERSION_KEY + userInfo.getId();
         stringRedisTemplate.opsForValue()
                 .set(tokenVersionKey, tokenVersion, USER_TOKEN_TTL, TimeUnit.MILLISECONDS);
@@ -260,5 +286,34 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         return token;
     }
 
+    /**
+     * @param id      String
+     * @param request HttpServletRequest
+     * @return Result
+     * @description 通过用户ID获取用户信息
+     */
+    @Override
+    public Result get(String id, HttpServletRequest request) {
+        // 1. 获取Token
+        String token = request.getHeader(USER_TOKEN_KEY_IN_HEADER);
+        // 1.1 判断是否已登录
+        if (StringUtils.isEmpty(token)) {
+            UserInfoWithCenterResDTO user = userMapper.getUserById(id, "");
+            return Result.success("获取成功", user, MsgType.SILENT);
+        } else {
+            // 1.2 解析Token
+            Claims payload;
+            try {
+                payload = Token.parse(token, USER_TOKEN_SECRET);
+                String userId = (String) payload.get("id");
+                UserInfoWithCenterResDTO user = userMapper.getUserById(id, userId);
+                return Result.success("获取成功", user, MsgType.SILENT);
+            } catch (Exception e) {
+                log.info("无效Token");
+                UserInfoWithCenterResDTO user = userMapper.getUserById(id, "");
+                return Result.success("获取成功", user, MsgType.SILENT);
+            }
+        }
+    }
 }
 

@@ -28,4 +28,8 @@ public class Auth {
      * 存于请求头中的sign key值
      */
     public static final String SIGN_KEY_IN_HEADER = "x-api-sign";
+    /**
+     * 用户存储在token中的version的key
+     */
+    public static final String VERSION_KEY_IN_TOKEN = "version";
 }

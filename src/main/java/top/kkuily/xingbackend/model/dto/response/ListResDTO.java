@@ -14,4 +14,5 @@ public class ListResDTO<DataType> {
     private Integer current;
     private Integer pageSize;
     private Integer total;
+
 }

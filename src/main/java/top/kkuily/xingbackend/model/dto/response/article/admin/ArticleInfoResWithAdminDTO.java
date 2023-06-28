@@ -1,4 +1,4 @@
-package top.kkuily.xingbackend.model.dto.response.article;
+package top.kkuily.xingbackend.model.dto.response.article.admin;
 
 import lombok.Data;
 
@@ -9,7 +9,7 @@ import java.util.Date;
  * @description 文章分页查询返回类
  */
 @Data
-public class ArticleInfoResDTO {
+public class ArticleInfoResWithAdminDTO {
     /**
      * 文章ID
      */
@@ -41,6 +41,11 @@ public class ArticleInfoResDTO {
     private String categoryIds;
 
     /**
+     * 标签IDS
+     */
+    private String tagIds;
+
+    /**
      * 状态ID
      */
     private String statusId;
@@ -49,6 +54,16 @@ public class ArticleInfoResDTO {
      * 文章封面图
      */
     private String cover;
+
+    /**
+     * 喜欢数
+     */
+    private Integer likedCount;
+
+    /**
+     * 收藏数
+     */
+    private Integer collectedCount;
 
     /**
      * 创建时间

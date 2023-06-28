@@ -14,7 +14,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.*;
 import top.kkuily.xingbackend.anotation.AdminAuthToken;
 import top.kkuily.xingbackend.anotation.Permission;
-import top.kkuily.xingbackend.model.enums.AUTHEnums;
+import top.kkuily.xingbackend.model.enums.AuthEnums;
 import top.kkuily.xingbackend.constant.commons.MsgType;
 import top.kkuily.xingbackend.model.dto.request.admin.AdminAddBodyDTO;
 import top.kkuily.xingbackend.model.dto.request.admin.AdminLoginAccountBodyDTO;
@@ -124,7 +124,7 @@ public class AdminController {
      * @description 管理员分页查询接口
      */
     @GetMapping("admin")
-    @Permission(authId = AUTHEnums.ADMIN_LIST)
+    @Permission(authId = AuthEnums.ADMIN_LIST)
     public Result getList(String params, String sort, String filter, String page) {
         log.info("page: {}", params);
         AdminListParamsVO paramsBean = JSONUtil.toBean(params, AdminListParamsVO.class);
@@ -144,7 +144,7 @@ public class AdminController {
      * @description 增
      */
     @PostMapping("admin")
-    @Permission(authId = AUTHEnums.ADMIN_ADD)
+    @Permission(authId = AuthEnums.ADMIN_ADD)
     public Result add(@RequestBody AdminAddBodyDTO adminAddBodyDTO) {
         log.info("adminAddBodyDTO: {}", adminAddBodyDTO);
         try {
@@ -209,7 +209,7 @@ public class AdminController {
      * @description 删
      */
     @DeleteMapping("admin")
-    @Permission(authId = AUTHEnums.ADMIN_DEL)
+    @Permission(authId = AuthEnums.ADMIN_DEL)
     public Result del(String id, HttpServletRequest request) {
         // 1. 判断账号是否存在
         Admin adminInTable = adminService.getById(id);
@@ -245,7 +245,7 @@ public class AdminController {
      * @description 改
      */
     @PutMapping("admin")
-    @Permission(authId = AUTHEnums.ADMIN_UPDATE)
+    @Permission(authId = AuthEnums.ADMIN_UPDATE)
     public Result update(@RequestBody AdminUpdateBodyDTO adminUpdateBodyDTO) {
         try {
             if (!StringUtils.isEmpty(adminUpdateBodyDTO.getId())) {
@@ -289,7 +289,7 @@ public class AdminController {
      * @description 获取某个管理员
      */
     @GetMapping("/admin/:id")
-    @Permission(authId = AUTHEnums.ADMIN_CHECK)
+    @Permission(authId = AuthEnums.ADMIN_CHECK)
     public Result get(@PathParam("id") String id) {
         // 1. 判断账号是否存在
         Admin adminInTable = adminService.getById(id);

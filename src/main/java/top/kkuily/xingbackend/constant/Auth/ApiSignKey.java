@@ -24,7 +24,7 @@ public class ApiSignKey {
             """;
 
     // 存储在redis中的nonce key
-    public static final String NONCE_KEY_IN_CACHE = "api:sign:nonce";
+    public static final String NONCE_KEY_IN_CACHE = "api:sign:nonce:";
 
     // 每次请求有效滑动时间窗口(单位：毫秒)
     public static final int LEGAL_TIME_PER_REQ = 300000;

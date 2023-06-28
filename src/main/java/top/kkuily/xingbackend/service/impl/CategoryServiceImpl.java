@@ -1,9 +1,9 @@
 package top.kkuily.xingbackend.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import top.kkuily.xingbackend.model.po.ArticleCategory;
-import top.kkuily.xingbackend.service.IArticleCategoryService;
-import top.kkuily.xingbackend.mapper.ArticleCategoryMapper;
+import top.kkuily.xingbackend.model.po.Category;
+import top.kkuily.xingbackend.service.ICategoryService;
+import top.kkuily.xingbackend.mapper.CategoryMapper;
 import org.springframework.stereotype.Service;
 
 /**
@@ -12,8 +12,8 @@ import org.springframework.stereotype.Service;
 * @createDate 2023-06-12 19:59:27
 */
 @Service
-public class ArticleCategoryServiceImpl extends ServiceImpl<ArticleCategoryMapper, ArticleCategory>
-    implements IArticleCategoryService {
+public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category>
+    implements ICategoryService {
 
 }
 

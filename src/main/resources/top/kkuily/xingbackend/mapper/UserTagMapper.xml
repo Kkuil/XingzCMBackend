@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="top.kkuily.xingbackend.mapper.UserTagMapper">
+
+    <resultMap id="BaseResultMap" type="top.kkuily.xingbackend.model.po.UserTag">
+        <id property="id" column="id" jdbcType="VARCHAR"/>
+        <id property="tagId" column="tagId" jdbcType="INTEGER"/>
+        <result property="createdTime" column="createdTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,tagId,createdTime
+    </sql>
+
+    <!-- 通过用户ID获取对应的标签IDS -->
+    <select id="selectTagIdsById" resultType="java.lang.Integer">
+        SELECT tagId
+        FROM user_tag
+        WHERE id = #{userId};
+    </select>
+
+    <!-- 通过用户ID删除对应的标签IDS -->
+    <delete id="deleteTagIdsById" parameterType="string">
+        DELETE
+        FROM user_tag
+        WHERE id = #{userId};
+    </delete>
+</mapper>

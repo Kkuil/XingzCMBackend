@@ -8,10 +8,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import top.kkuily.xingbackend.anotation.Permission;
 import top.kkuily.xingbackend.constant.commons.MsgType;
+import top.kkuily.xingbackend.mapper.UserTagMapper;
 import top.kkuily.xingbackend.model.dto.request.user.UserAddBodyDTO;
 import top.kkuily.xingbackend.model.dto.request.user.UserUpdateBodyDTO;
+import top.kkuily.xingbackend.model.enums.AuthEnums;
 import top.kkuily.xingbackend.model.po.User;
+import top.kkuily.xingbackend.model.po.UserTag;
 import top.kkuily.xingbackend.model.vo.ListPageVO;
 import top.kkuily.xingbackend.model.vo.ListParamsVO;
 import top.kkuily.xingbackend.model.vo.user.UserByUsernameForChat;
@@ -19,9 +23,11 @@ import top.kkuily.xingbackend.model.vo.user.list.UserListFilterVO;
 import top.kkuily.xingbackend.model.vo.user.list.UserListParamsVO;
 import top.kkuily.xingbackend.model.vo.user.list.UserListSortVO;
 import top.kkuily.xingbackend.service.IUserService;
+import top.kkuily.xingbackend.service.IUserTagService;
 import top.kkuily.xingbackend.utils.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static top.kkuily.xingbackend.constant.commons.Auth.USER_MAIN_ID;
@@ -38,6 +44,12 @@ public class UserController {
     @Resource
     private IUserService userService;
 
+    @Resource
+    private IUserTagService userTagService;
+
+    @Resource
+    private UserTagMapper userTagMapper;
+
     /**
      * 用户分页查询接口
      *
@@ -47,6 +59,7 @@ public class UserController {
      * @return Result
      */
     @GetMapping("user")
+    @Permission(authId = AuthEnums.USER_LIST)
     public Result getList(String params, String sort, String filter, String page) {
         UserListParamsVO paramsBean = JSONUtil.toBean(params, UserListParamsVO.class);
         UserListSortVO sortBean = JSONUtil.toBean(sort, UserListSortVO.class);
@@ -65,6 +78,7 @@ public class UserController {
      * @description 增
      */
     @PostMapping("user")
+    @Permission(authId = AuthEnums.USER_ADD)
     @Transactional(rollbackFor = Exception.class)
     public Result add(@RequestBody UserAddBodyDTO userAddBodyDTO) {
         try {
@@ -96,10 +110,10 @@ public class UserController {
             }
         }
         // 随机uuid当后缀
-        String suffix = StringUtils.split(UUID.randomUUID(true).toString(), "-")[0];
         User user = new User();
         userAddBodyDTO.convertTo(user);
         if (StringUtils.isEmpty(userAddBodyDTO.getUsername())) {
+            String suffix = StringUtils.split(UUID.randomUUID(true).toString(), "-")[0];
             // 用户名为空，设置默认用户名
             user.setUsername(USER_DEFAULT_NAME_PREFIX + suffix);
         }
@@ -117,6 +131,7 @@ public class UserController {
      * @description 删
      */
     @DeleteMapping("user")
+    @Permission(authId = AuthEnums.USER_DEL)
     public Result del(String id) {
         // 1. 判断账号是否存在
         User userInTable = userService.getById(id);
@@ -142,7 +157,10 @@ public class UserController {
      * @description 改
      */
     @PutMapping("user")
+    @Transactional(rollbackFor = Exception.class)
+    @Permission(authId = AuthEnums.USER_UPDATE)
     public Result update(@RequestBody UserUpdateBodyDTO userUpdateBodyDTO) {
+        String userId = userUpdateBodyDTO.getId();
         try {
             if (!StringUtils.isEmpty(userUpdateBodyDTO.getPhone())) {
                 ValidateUtils.validateLength("手机号", userUpdateBodyDTO.getPhone(), 11, 11);
@@ -155,16 +173,34 @@ public class UserController {
                 ValidateUtils.validateMail("邮箱", userUpdateBodyDTO.getEmail());
             }
             // 判断账号是否存在
-            User userInTable = userService.getById(userUpdateBodyDTO.getId());
+            User userInTable = userService.getById(userId);
             if (userInTable == null) {
                 return Result.fail(403, "账号不存在", MsgType.ERROR_MESSAGE);
             }
         } catch (Exception e) {
             return Result.fail(403, e.getMessage(), MsgType.ERROR_MESSAGE);
         }
+        // 更新用户表（user）
         User user = new User();
         userUpdateBodyDTO.convertTo(user);
         boolean isUpdate = userService.updateById(user);
+        // 更新用户标签表（user_tag）
+        // 1. 删除旧标签
+        boolean isDel = userTagMapper.deleteTagIdsById(userId);
+        if (isDel) {
+            // 2. 新增新标签
+            String[] newTagIds = userUpdateBodyDTO.getTagIds();
+            List<UserTag> list = Arrays.stream(newTagIds).map(tagId -> {
+                UserTag userTag = new UserTag();
+                userTag.setId(userId);
+                userTag.setTagId(Integer.valueOf(tagId));
+                return userTag;
+            }).toList();
+            boolean isInsert = userTagService.saveBatch(list);
+            if (!isInsert) {
+                return Result.fail(403, "插入错误，未知异常，请稍后再试", MsgType.ERROR_MESSAGE);
+            }
+        }
         if (isUpdate) {
             return Result.success("更新成功", true);
         } else {
@@ -177,7 +213,8 @@ public class UserController {
      * @return Result
      * @description 通过用户名获取用户
      */
-    @GetMapping("/user/{username}")
+    @GetMapping("/user-username/{username}")
+    @Permission(authId = AuthEnums.USER_CHECK)
     public Result getByUsername(@PathVariable String username) {
         // 判断账号是否存在
         QueryWrapper<User> userWrapper = new QueryWrapper<>();

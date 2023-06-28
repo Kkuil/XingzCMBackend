@@ -8,8 +8,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
+import top.kkuily.xingbackend.anotation.Permission;
 import top.kkuily.xingbackend.model.dto.request.role.RoleAddBodyDTO;
 import top.kkuily.xingbackend.model.dto.request.role.RoleUpdateBodyDTO;
+import top.kkuily.xingbackend.model.enums.AuthEnums;
 import top.kkuily.xingbackend.model.enums.IsDeletedEnums;
 import top.kkuily.xingbackend.model.po.Role;
 import top.kkuily.xingbackend.model.vo.ListPageVO;
@@ -23,6 +25,7 @@ import top.kkuily.xingbackend.utils.Result;
 import top.kkuily.xingbackend.utils.ValidateUtils;
 
 import static top.kkuily.xingbackend.constant.commons.Auth.BASE_ROLE;
+import static top.kkuily.xingbackend.constant.commons.Global.SPLITOR;
 
 /**
  * @author 小K
@@ -42,6 +45,7 @@ public class RoleController {
      * @description 角色分页查询接口
      */
     @GetMapping("role")
+    @Permission(authId = AuthEnums.ROLE_LIST)
     public Result getList(String params, String sort, String filter, String page) {
         log.info("page: {}", params);
         RoleListParamsVO paramsBean = JSONUtil.toBean(params, RoleListParamsVO.class);
@@ -62,6 +66,7 @@ public class RoleController {
      * @description 增
      */
     @PostMapping("role")
+    @Permission(authId = AuthEnums.ROLE_ADD)
     public Result add(@RequestBody RoleAddBodyDTO roleAddBodyDTO) {
         try {
             // 1. 判空
@@ -86,7 +91,7 @@ public class RoleController {
         roleAddBodyDTO.convertTo(role);
         // 转换一下存储格式，优化数据库存储大小
         role.setAuthIds(StringUtils
-                .join(roleAddBodyDTO.getAuthIds(), ",")
+                .join(roleAddBodyDTO.getAuthIds(), SPLITOR)
                 .replace("[", "")
                 .replace("]", ""));
         // 保存数据
@@ -104,6 +109,7 @@ public class RoleController {
      * @description 删
      */
     @DeleteMapping("role")
+    @Permission(authId = AuthEnums.ROLE_DEL)
     public Result del(String id) {
         // 1. 判断账号是否存在
         Role roleInTable = roleService.getById(id);
@@ -132,6 +138,7 @@ public class RoleController {
      * @description 改
      */
     @PutMapping("role")
+    @Permission(authId = AuthEnums.ROLE_UPDATE)
     public Result update(@RequestBody RoleUpdateBodyDTO roleUpdateBodyDTO) {
         String id = roleUpdateBodyDTO.getId();
         try {
@@ -155,7 +162,7 @@ public class RoleController {
         log.error("role: {}", role);
         // 转换一下存储格式，优化数据库存储大小
         role.setAuthIds(StringUtils
-                .join(roleUpdateBodyDTO.getAuthIds(), ",")
+                .join(roleUpdateBodyDTO.getAuthIds(), SPLITOR)
                 .replace("[", "")
                 .replace("]", ""));
         boolean isUpdate = roleService.updateById(role);
@@ -172,6 +179,7 @@ public class RoleController {
      * @description 获取某个角色
      */
     @GetMapping("/role/:id")
+    @Permission(authId = AuthEnums.ROLE_CHECK)
     public Result get(@PathParam("id") String id) {
         // 1. 判断账号是否存在
         Role roleInTable = roleService.getById(id);

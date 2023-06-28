@@ -1,4 +1,4 @@
-package top.kkuily.xingbackend.model.dto.request.article;
+package top.kkuily.xingbackend.model.dto.request.article.admin;
 
 import lombok.Data;
 import org.springframework.beans.BeanUtils;

@@ -2,7 +2,6 @@ package top.kkuily.xingbackend.service.impl;
 
 import cn.hutool.core.lang.UUID;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.impl.DefaultClaims;
@@ -11,28 +10,18 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.util.StringUtils;
-import top.kkuily.xingbackend.model.dto.request.admin.AdminAuthInfoDTO;
 import top.kkuily.xingbackend.model.dto.request.admin.AdminLoginAccountBodyDTO;
 import top.kkuily.xingbackend.model.dto.response.ListResDTO;
 import top.kkuily.xingbackend.model.dto.response.admin.AdminAuthInfoResDTO;
 import top.kkuily.xingbackend.model.dto.response.admin.AdminInfoResDTO;
-import top.kkuily.xingbackend.model.dto.response.article.ArticleInfoResDTO;
 import top.kkuily.xingbackend.model.vo.ListParamsVO;
 import top.kkuily.xingbackend.model.dto.request.admin.AdminLoginPhoneBodyDTO;
 import top.kkuily.xingbackend.model.po.Admin;
-import top.kkuily.xingbackend.model.po.Role;
-import top.kkuily.xingbackend.model.po.Auth;
 import top.kkuily.xingbackend.model.vo.admin.list.AdminListFilterVO;
 import top.kkuily.xingbackend.model.vo.ListPageVO;
 import top.kkuily.xingbackend.model.vo.admin.list.AdminListParamsVO;
 import top.kkuily.xingbackend.model.vo.admin.list.AdminListSortVO;
-import top.kkuily.xingbackend.model.vo.article.list.ArticleListFilterVO;
-import top.kkuily.xingbackend.model.vo.article.list.ArticleListParamsVO;
-import top.kkuily.xingbackend.model.vo.article.list.ArticleListSortVO;
 import top.kkuily.xingbackend.service.IAdminService;
-import top.kkuily.xingbackend.mapper.AuthMapper;
-import top.kkuily.xingbackend.mapper.RoleMapper;
 import top.kkuily.xingbackend.mapper.AdminMapper;
 import org.springframework.stereotype.Service;
 import top.kkuily.xingbackend.constant.commons.MsgType;
@@ -46,7 +35,6 @@ import java.util.regex.Pattern;
 
 import static top.kkuily.xingbackend.constant.admin.Auth.*;
 import static top.kkuily.xingbackend.constant.commons.Pattern.PHONE_REG;
-import static top.kkuily.xingbackend.constant.commons.Global.MAX_COUNT_PER_LIST;
 
 /**
  * @author 小K
@@ -58,13 +46,7 @@ import static top.kkuily.xingbackend.constant.commons.Global.MAX_COUNT_PER_LIST;
 public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements IAdminService {
 
     @Resource
-    private RoleMapper roleMapper;
-
-    @Resource
     private AdminMapper adminMapper;
-
-    @Resource
-    private AuthMapper authMapper;
 
     @Resource
     private StringRedisTemplate stringRedisTemplate;
@@ -168,7 +150,7 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
 
         AdminAuthInfoResDTO authInfo;
         try {
-            authInfo = adminMapper.findAuthInfo(adminId);
+            authInfo = adminMapper.selectAuthInfo(adminId);
         } catch (Exception e) {
             return Result.fail(403, "Access denied.", MsgType.ERROR_MESSAGE);
         }
@@ -227,7 +209,13 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
         HashMap<String, Object> adminInfoInToken = new HashMap<>();
         adminInfoInToken.put("id", adminInfo.getId());
         // 当前token版本号
-        String tokenVersion = isRegenerateVersion ? UUID.randomUUID().toString() : payload.get("version").toString();
+        String tokenVersion;
+        if (isRegenerateVersion) {
+            tokenVersion = UUID.randomUUID().toString();
+            adminInfoInToken.put("version", tokenVersion);
+        } else {
+            tokenVersion = payload.get("version").toString();
+        }
         adminInfoInToken.put("version", tokenVersion);
         String token = Token.create(adminInfoInToken, ADMIN_TOKEN_SECRET);
         // token 版本号key，为了防止token还在有效期内，但是密码已经被修改的情况

@@ -4,6 +4,13 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="top.kkuily.xingbackend.mapper.ArticleMapper">
 
+    <sql id="Base_Column_List">
+        id,userId,title,
+        content,statusId,
+        cover,isDeleted,
+        createdTime,modifiedTime
+    </sql>
+
     <resultMap id="BaseResultMap" type="top.kkuily.xingbackend.model.po.Article">
         <id property="id" column="id" jdbcType="VARCHAR"/>
         <result property="userId" column="userId" jdbcType="VARCHAR"/>
@@ -16,56 +23,71 @@
         <result property="modifiedTime" column="modifiedTime" jdbcType="TIMESTAMP"/>
     </resultMap>
 
-    <resultMap id="ArticleInfoMap" type="top.kkuily.xingbackend.model.dto.response.article.ArticleInfoResDTO">
+    <!--管理员分页查询的每篇文章信息-->
+    <resultMap id="ArticleInfoMapWithAdmin"
+               type="top.kkuily.xingbackend.model.dto.response.article.admin.ArticleInfoResWithAdminDTO">
         <id property="id" column="id" jdbcType="VARCHAR"/>
         <result property="username" column="username" jdbcType="VARCHAR"/>
         <result property="title" column="title" jdbcType="VARCHAR"/>
         <result property="content" column="content" jdbcType="VARCHAR"/>
         <result property="categoryIds" column="categoryIds" jdbcType="INTEGER"/>
+        <result property="tagIds" column="tagIds" jdbcType="INTEGER"/>
         <result property="statusId" column="statusId" jdbcType="INTEGER"/>
         <result property="cover" column="cover" jdbcType="VARCHAR"/>
-        <result property="isDeleted" column="isDeleted" jdbcType="VARCHAR"/>
+        <result property="likedCount" column="likedCount" jdbcType="INTEGER"/>
+        <result property="collectedCount" column="collectedCount" jdbcType="INTEGER"/>
         <result property="createdTime" column="createdTime" jdbcType="TIMESTAMP"/>
         <result property="modifiedTime" column="modifiedTime" jdbcType="TIMESTAMP"/>
     </resultMap>
 
-    <sql id="Base_Column_List">
-        id,userId,title,
-        content,statusId,
-        cover,isDeleted,
-        createdTime,modifiedTime
-    </sql>
-
-    <!--带分页的查询根语句-->
+    <!--管理员带分页的查询根语句-->
     <sql id="ArticleListWithLimitBaseQuery">
         SELECT a.id,
                a.userId,
                u.username,
                a.title,
                a.content,
-               a.categoryIds,
                a.statusId,
                a.cover,
-               a.isDeleted,
                a.createdTime,
-               a.modifiedTime
+               article_liked_temp.likedCount,
+               article_collected_temp.collectedCount,
+               article_comment_temp.commentCount
         FROM article a
-                 JOIN article_status on a.statusId = article_status.id
+                 JOIN article_status ON a.statusId = article_status.id
                  JOIN user u ON a.userId = u.id
-                 JOIN article_statistic ast ON ast.id = a.id
+                 LEFT JOIN (SELECT ua.articleId, COUNT(*) AS likedCount
+                            FROM user_article AS ua
+                            WHERE ua.type = 1
+                            GROUP BY ua.articleId) AS article_liked_temp ON a.id = article_liked_temp.articleId
+                 LEFT JOIN (SELECT ua.articleId, COUNT(*) AS collectedCount
+                            FROM user_article AS ua
+                            WHERE ua.type = 3
+                            GROUP BY ua.articleId) AS article_collected_temp ON a.id = article_collected_temp.articleId
+                 LEFT JOIN (SELECT acom.articleId, COUNT(*) AS commentCount
+                            FROM article_comment AS acom
+                            GROUP BY acom.articleId) AS article_comment_temp ON a.id = article_comment_temp.articleId
+                 LEFT JOIN article_tag atr ON a.id = atr.id
+                 LEFT JOIN article_category acr ON a.id = acr.id
+        WHERE (atr.tagId = #{tagId} OR #{tagId} IS NULL)
+          AND (acr.categoryId = #{categoryId} OR #{categoryId} IS NULL)
+        LIMIT ${(current - 1) * pageSize}, #{pageSize}
     </sql>
 
-    <!--不带分页的查询根语句-->
+    <!--管理员不带分页的查询根语句-->
     <sql id="ArticleListWithNotLimitBaseQuery">
         SELECT COUNT(*)
         FROM article a
-                 JOIN article_status on a.statusId = article_status.id
+                 JOIN article_status ON a.statusId = article_status.id
                  JOIN user u ON a.userId = u.id
-                 JOIN article_statistic ast ON ast.id = a.id
+                 LEFT JOIN article_tag atr ON a.id = atr.id
+                 LEFT JOIN article_category acr ON a.id = acr.id
+        WHERE (atr.tagId = #{tagId} OR #{tagId} IS NULL)
+          AND (acr.categoryId = #{categoryId} OR #{categoryId} IS NULL)
     </sql>
 
-    <!--带分页的查询语句-->
-    <select id="listArticlesWithLimit" resultMap="ArticleInfoMap">
+    <!--管理员带分页的查询语句-->
+    <select id="listArticlesWithLimit" resultMap="ArticleInfoMapWithAdmin">
         <include refid="ArticleListWithLimitBaseQuery"/>
 
         <where>
@@ -121,7 +143,7 @@
         LIMIT #{page.current}, #{page.pageSize}
     </select>
 
-    <!--带分页的查询语句-->
+    <!--管理员带分页的查询语句-->
     <select id="listArticlesWithNotLimit" resultType="java.lang.Integer">
         <include refid="ArticleListWithNotLimitBaseQuery"/>
 
@@ -177,4 +199,150 @@
             </choose>
         </if>
     </select>
+
+    <!-- ============================================================ -->
+
+    <!--用户带分页的查询根语句-->
+    <sql id="ArticleListWithLimitAndUserBaseQuery">
+        SELECT a.id,
+               a.userId,
+               u.username,
+               a.title,
+               a.content,
+               a.statusId,
+               a.cover,
+               a.createdTime,
+               article_liked_temp.likedCount,
+               article_collected_temp.collectedCount,
+               article_comment_temp.commentCount,
+               CASE WHEN user_liked_article.articleId IS NOT NULL THEN true ELSE false END     AS isLiked,
+               CASE WHEN user_collected_article.articleId IS NOT NULL THEN true ELSE false END AS isCollected
+        FROM article a
+                 JOIN article_status ON a.statusId = article_status.id
+                 JOIN user u ON a.userId = u.id
+                 LEFT JOIN (SELECT ua.articleId, COUNT(*) AS likedCount
+                            FROM user_article AS ua
+                            WHERE ua.type = 1
+                            GROUP BY ua.articleId) AS article_liked_temp ON a.id = article_liked_temp.articleId
+                 LEFT JOIN (SELECT ua.articleId, COUNT(*) AS collectedCount
+                            FROM user_article AS ua
+                            WHERE ua.type = 3
+                            GROUP BY ua.articleId) AS article_collected_temp ON a.id = article_collected_temp.articleId
+                 LEFT JOIN (SELECT acom.articleId, COUNT(*) AS commentCount
+                            FROM article_comment AS acom
+                            GROUP BY acom.articleId) AS article_comment_temp ON a.id = article_comment_temp.articleId
+                 LEFT JOIN article_tag atr ON a.id = atr.id
+                 LEFT JOIN article_category acr ON a.id = acr.id
+                 LEFT JOIN (SELECT ua.articleId
+                            FROM user_article AS ua
+                            WHERE ua.type = 1
+                              AND ua.id = #{userId}) AS user_liked_article ON a.id = user_liked_article.articleId
+                 LEFT JOIN (SELECT ua.articleId
+                            FROM user_article AS ua
+                            WHERE ua.type = 3
+                              AND ua.id = #{userId}) AS user_collected_article
+                           ON a.id = user_collected_article.articleId
+        WHERE (atr.tagId = #{tagId} OR #{tagId} IS NULL)
+          AND (acr.categoryId = #{categoryId} OR #{categoryId} IS NULL)
+        LIMIT ${(current - 1) * pageSize}, #{pageSize}
+    </sql>
+
+    <!--用户不带分页的查询根语句-->
+    <sql id="ArticleListWithNotLimitAndUserBaseQuery">
+        SELECT COUNT(*)
+        FROM article a
+                 JOIN article_status ON a.statusId = article_status.id
+                 JOIN user u ON a.userId = u.id
+                 LEFT JOIN article_tag atr ON a.id = atr.id
+                 LEFT JOIN article_category acr ON a.id = acr.id
+        WHERE (atr.tagId = #{tagId} OR #{tagId} IS NULL)
+          AND (acr.categoryId = #{categoryId} OR #{categoryId} IS NULL)
+    </sql>
+
+    <!--用户分页查询的每篇文章信息-->
+    <resultMap id="ArticleListWithLimitAndUserBaseQuery"
+               type="top.kkuily.xingbackend.model.dto.response.article.user.ArticleInfoResWithUserDTO">
+        <id property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="username" column="username" jdbcType="VARCHAR"/>
+        <result property="title" column="title" jdbcType="VARCHAR"/>
+        <result property="content" column="content" jdbcType="VARCHAR"/>
+        <result property="cover" column="cover" jdbcType="VARCHAR"/>
+        <result property="likedCount" column="likedCount" jdbcType="VARCHAR"/>
+        <result property="collectedCount" column="collectedCount" jdbcType="VARCHAR"/>
+        <result property="commentCount" column="commentCount" jdbcType="VARCHAR"/>
+        <result property="createdTime" column="createdTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <!--用户带分页的查询语句-->
+    <select id="listArticlesWithLimitAndUser"
+            resultType="top.kkuily.xingbackend.model.dto.response.article.user.ArticleInfoResWithUserDTO">
+        <include refid="ArticleListWithLimitAndUserBaseQuery"/>
+
+    </select>
+
+    <!--用户带分页的查询语句-->
+    <select id="listArticlesWithNotLimitAndUser"
+            resultType="java.lang.Integer">
+        <include refid="ArticleListWithNotLimitAndUserBaseQuery"/>
+
+    </select>
+
+    <!-- ============================================================ -->
+
+    <!--用户查询文章详情根语句-->
+    <sql id="ArticleDetailWithUserBaseQuery">
+        SELECT a.id,
+               a.title,
+               a.content,
+               a.cover,
+               a.createdTime,
+               a.modifiedTime,
+               article_liked_temp.likedCount,
+               article_collected_temp.collectedCount,
+               CASE WHEN user_liked_article.articleId IS NOT NULL THEN true ELSE false END     AS isLiked,
+               CASE WHEN user_collected_article.articleId IS NOT NULL THEN true ELSE false END AS isCollected
+        FROM article a
+                 JOIN article_status ON a.statusId = article_status.id
+                 JOIN user u ON a.userId = u.id
+                 LEFT JOIN (SELECT ua.articleId, COUNT(*) AS likedCount
+                            FROM user_article AS ua
+                            WHERE ua.type = 1
+                            GROUP BY ua.articleId) AS article_liked_temp ON a.id = article_liked_temp.articleId
+                 LEFT JOIN (SELECT ua.articleId, COUNT(*) AS collectedCount
+                            FROM user_article AS ua
+                            WHERE ua.type = 3
+                            GROUP BY ua.articleId) AS article_collected_temp ON a.id = article_collected_temp.articleId
+                 LEFT JOIN (SELECT ua.articleId
+                            FROM user_article AS ua
+                            WHERE ua.type = 1
+                              AND ua.id = #{userId}) AS user_liked_article ON a.id = user_liked_article.articleId
+                 LEFT JOIN (SELECT ua.articleId
+                            FROM user_article AS ua
+                            WHERE ua.type = 3
+                              AND ua.id = #{userId}) AS user_collected_article
+                           ON a.id = user_collected_article.articleId
+        WHERE a.id = #{articleId}
+    </sql>
+
+    <!-- 用户查询文章详情中文章的详情 -->
+    <select id="selectArticleDetailInfo" resultType="top.kkuily.xingbackend.model.vo.article.detail.ArticleDetailInfoVO">
+        <include refid="ArticleDetailWithUserBaseQuery"/>
+
+    </select>
+
+    <!-- 用户查询文章详情中作者的详情 -->
+    <select id="selectUserById" resultType="top.kkuily.xingbackend.model.vo.article.detail.AuthorDetailInfoVO">
+        SELECT u.id,
+               u.username,
+               u.avatar,
+               u.phone,
+               u.birthday,
+               u.gender,
+               u.email,
+               u.isVip
+        FROM article AS a
+                 JOIN user AS u ON a.userId = u.id
+        WHERE a.id = #{articleId}
+    </select>
+
 </mapper>

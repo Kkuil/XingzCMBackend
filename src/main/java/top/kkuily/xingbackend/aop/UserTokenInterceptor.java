@@ -43,15 +43,14 @@ public class UserTokenInterceptor {
         HttpServletRequest request = attributes.getRequest();
         HttpServletResponse response = attributes.getResponse();
         String tokenInHeader = request.getHeader(USER_TOKEN_KEY_IN_HEADER);
-        System.out.println("user-token");
         // 1. 验证token是否为空
         if (StringUtils.isEmpty(tokenInHeader)) {
-            throw new SecurityException("未登录");
+            throw new SecurityException("请先登录");
         }
 
         // 2. 验证token的有效性
         // 2.1 验证token未过期并是有效的
-        Claims payload = Token.parse(tokenInHeader,USER_TOKEN_SECRET);
+        Claims payload = Token.parse(tokenInHeader, USER_TOKEN_SECRET);
         if (payload == null) {
             throw new SecurityException("Access denied");
         }
@@ -72,7 +71,7 @@ public class UserTokenInterceptor {
         }
 
         // 3. 刷新token
-        String token = userService.saveTokenVersion(userInfo, false, payload);
+        String token = userService.saveTokenVersion(userInfo, true, payload);
         assert response != null;
         response.setHeader(USER_TOKEN_KEY_IN_HEADER, token);
         return joinPoint.proceed();

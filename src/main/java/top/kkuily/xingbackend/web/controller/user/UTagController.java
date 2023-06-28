@@ -1,24 +1,20 @@
 package top.kkuily.xingbackend.web.controller.user;
 
-import cn.hutool.json.JSONUtil;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import jakarta.annotation.Resource;
 import jakarta.websocket.server.PathParam;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.web.bind.annotation.*;
-import top.kkuily.xingbackend.model.dto.request.tag.TagAddBodyDTO;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+import top.kkuily.xingbackend.constant.commons.MsgType;
+import top.kkuily.xingbackend.model.dto.response.ListResDTO;
 import top.kkuily.xingbackend.model.enums.IsDeletedEnums;
+import top.kkuily.xingbackend.model.po.Department;
 import top.kkuily.xingbackend.model.po.Tag;
 import top.kkuily.xingbackend.model.vo.ListPageVO;
-import top.kkuily.xingbackend.model.vo.ListParamsVO;
-import top.kkuily.xingbackend.model.vo.tag.list.TagListFilterVO;
-import top.kkuily.xingbackend.model.vo.tag.list.TagListParamsVO;
-import top.kkuily.xingbackend.model.vo.tag.list.TagListSortVO;
 import top.kkuily.xingbackend.service.ITagService;
-import top.kkuily.xingbackend.constant.commons.MsgType;
 import top.kkuily.xingbackend.utils.Result;
-import top.kkuily.xingbackend.utils.ValidateUtils;
+
+import java.util.List;
 
 /**
  * @author 小K
@@ -32,60 +28,18 @@ public class UTagController {
     private ITagService tagService;
 
     /**
-     * @param params ArticleListParamsVO
-     * @param sort   ArticleListSortVO
-     * @param filter ArticleListFilterVO
-     * @param page   TagListPageVO
      * @return Result
      * @description 标签分页查询接口
      */
     @GetMapping("utag")
-    public Result getList(String params, String sort, String filter, String page) {
-        log.info("page: {}", params);
-        TagListParamsVO paramsBean = JSONUtil.toBean(params, TagListParamsVO.class);
-        TagListSortVO sortBean = JSONUtil.toBean(sort, TagListSortVO.class);
-        TagListFilterVO filterBean = JSONUtil.toBean(filter, TagListFilterVO.class);
-        ListPageVO pageBean = JSONUtil.toBean(page, ListPageVO.class);
-        ListParamsVO<TagListParamsVO, TagListSortVO, TagListFilterVO> listParams = new ListParamsVO<>(paramsBean, sortBean, filterBean, pageBean);
-        return tagService.getList(listParams);
-    }
-
-    // region
-    // 增删改查
-
-    /**
-     * @param tagAddBodyDTO AuthAddBodyDTO
-     * @return Result
-     * @description 增
-     */
-    @PostMapping("utag")
-    public Result add(@RequestBody TagAddBodyDTO tagAddBodyDTO) {
-        try {
-            // 1. 判空
-            ValidateUtils.validateNotEmpty("标签名", tagAddBodyDTO.getTagName());
-            // 2. 判长
-            if (!StringUtils.isEmpty(tagAddBodyDTO.getTagName())) {
-                ValidateUtils.validateLength("标签名", tagAddBodyDTO.getTagName(), 2, 10);
-            }
-            // 判断标签名是否存在
-            QueryWrapper<Tag> tagWrapper = new QueryWrapper<>();
-            tagWrapper.eq("tagName", tagAddBodyDTO.getTagName());
-            Tag tagInTable = tagService.getOne(tagWrapper);
-            if (tagInTable != null) {
-                throw new IllegalArgumentException("标签名已存在，请重新输入");
-            }
-        } catch (Exception e) {
-            return Result.fail(403, e.getMessage(), MsgType.ERROR_MESSAGE);
-        }
-        Tag tag = new Tag();
-        tagAddBodyDTO.convertTo(tag);
-        // 保存数据
-        boolean isSave = tagService.save(tag);
-        if (isSave) {
-            return Result.success("添加成功", true);
-        } else {
-            return Result.fail(500, "添加失败", MsgType.ERROR_MESSAGE);
-        }
+    public Result getList() {
+        List<Tag> list = tagService.list();
+        ListResDTO<Tag> deptListRes = new ListResDTO<>();
+        deptListRes.setCurrent(1);
+        deptListRes.setPageSize(list.size());
+        deptListRes.setList(list);
+        deptListRes.setTotal(list.size());
+        return Result.success("获取成功", deptListRes, MsgType.SILENT);
     }
 
     /**
@@ -108,6 +62,4 @@ public class UTagController {
             return Result.success("获取成功，该标签已被删除", true);
         }
     }
-
-    // endregion
 }

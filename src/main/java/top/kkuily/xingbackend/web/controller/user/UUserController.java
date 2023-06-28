@@ -1,23 +1,25 @@
 package top.kkuily.xingbackend.web.controller.user;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.expression.AccessException;
 import org.springframework.web.bind.annotation.*;
 import top.kkuily.xingbackend.anotation.ApiSignAuth;
-import top.kkuily.xingbackend.anotation.UserAuthToken;
 import top.kkuily.xingbackend.constant.commons.MsgType;
 import top.kkuily.xingbackend.model.dto.request.user.UserLoginAccountBodyDTO;
 import top.kkuily.xingbackend.model.dto.request.user.UserLoginPhoneBodyDTO;
-import top.kkuily.xingbackend.model.po.User;
+import top.kkuily.xingbackend.model.po.UserBg;
+import top.kkuily.xingbackend.service.IUserBgService;
+import top.kkuily.xingbackend.service.IUserRankService;
 import top.kkuily.xingbackend.service.IUserService;
 import top.kkuily.xingbackend.service.other.SmsCaptchaService;
 import top.kkuily.xingbackend.utils.*;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -36,6 +38,12 @@ import static top.kkuily.xingbackend.constant.user.Auth.USER_REGISTRY_CACHE_KEY;
 public class UUserController {
     @Resource
     private IUserService userService;
+
+    @Resource
+    private IUserRankService userRankService;
+
+    @Resource
+    private IUserBgService userBgService;
 
     @Resource
     private StringRedisTemplate stringRedisTemplate;
@@ -63,9 +71,8 @@ public class UUserController {
      * @return Result
      */
     @PostMapping("user-auth")
-    @UserAuthToken
     @ApiSignAuth
-    public Result auth(HttpServletRequest request) {
+    public Result auth(HttpServletRequest request) throws AccessException {
         return userService.auth(request);
     }
 
@@ -97,13 +104,6 @@ public class UUserController {
         if (!matcher.matches()) {
             return Result.fail(403, "手机号格式错误，请检查手机号格式", MsgType.NOTIFICATION);
         } else {
-            // 判断手机号是否已注册
-            QueryWrapper<User> userWrapper = new QueryWrapper<>();
-            userWrapper.eq("phone", phone);
-            User user = userService.getOne(userWrapper);
-            if (user != null) {
-                return Result.fail(403, "这个手机号好像已被注册，请换个号试试吧", MsgType.NOTIFICATION);
-            }
             int sms = smsCaptchaService.send(phone);
             if (sms != 0) {
                 // 缓存redis
@@ -128,7 +128,40 @@ public class UUserController {
      */
     @PostMapping("user-registry-phone")
     @ApiSignAuth
-    public Result loginWithPhone(HttpServletResponse response, @RequestBody UserLoginPhoneBodyDTO userLoginPhoneBody) {
-        return userService.registryWithPhone(response, userLoginPhoneBody);
+    public Result loginRegistryWithPhone(HttpServletResponse response, @RequestBody UserLoginPhoneBodyDTO userLoginPhoneBody) {
+        return userService.loginRegistryWithPhone(response, userLoginPhoneBody);
+    }
+
+    /**
+     * @param current  int
+     * @param pageSize int
+     * @return Result
+     * @description 获取用户等级列表
+     */
+    @GetMapping("user-rank")
+    @ApiSignAuth
+    public Result listUserRank(int current, int pageSize, int sort) {
+        return userRankService.listUserRank(current, pageSize, sort);
+    }
+
+    /**
+     * @param id String
+     * @return Result
+     * @description 通过用户ID获取用户信息
+     */
+    @GetMapping("/user/{id}")
+    @ApiSignAuth
+    public Result get(@PathVariable("id") String id, HttpServletRequest request) {
+        return userService.get(id, request);
+    }
+
+    /**
+     * @description 获取用户背景图
+     * @return Result
+     */
+    @GetMapping("/user-bg")
+    public Result listBgCover() {
+        List<UserBg> list = userBgService.list();
+        return Result.success("获取成功", list, MsgType.SILENT);
     }
 }

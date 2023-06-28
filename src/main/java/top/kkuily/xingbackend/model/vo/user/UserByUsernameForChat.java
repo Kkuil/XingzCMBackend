@@ -5,7 +5,6 @@ import org.springframework.beans.BeanUtils;
 import top.kkuily.xingbackend.model.po.User;
 
 import java.util.List;
-import java.util.function.Consumer;
 
 /**
  * @author 小K

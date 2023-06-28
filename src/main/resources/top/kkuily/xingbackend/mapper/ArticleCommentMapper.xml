@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="top.kkuily.xingbackend.mapper.ArticleCommentMapper">
+
+    <resultMap id="BaseResultMap" type="top.kkuily.xingbackend.model.po.ArticleComment">
+        <id property="id" column="id" jdbcType="OTHER"/>
+        <result property="articleId" column="articleId" jdbcType="VARCHAR"/>
+        <result property="parentId" column="parentId" jdbcType="OTHER"/>
+        <result property="userId" column="userId" jdbcType="VARCHAR"/>
+        <result property="content" column="content" jdbcType="VARCHAR"/>
+        <result property="likedCount" column="likedCount" jdbcType="OTHER"/>
+        <result property="dislikedCount" column="dislikedCount" jdbcType="OTHER"/>
+        <result property="createdTime" column="createdTime" jdbcType="TIMESTAMP"/>
+        <result property="updatedTime" column="modifiedTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <!-- 文章评论信息 -->
+    <resultMap id="ArticleCommentDetailInfoResultMap"
+               type="top.kkuily.xingbackend.model.vo.article.detail.CommentDetailInfoVO">
+        <id property="id" column="id" jdbcType="OTHER"/>
+        <result property="userId" column="userId" jdbcType="VARCHAR"/>
+        <result property="username" column="username" jdbcType="OTHER"/>
+        <result property="avatar" column="avatar" jdbcType="OTHER"/>
+        <result property="content" column="content" jdbcType="VARCHAR"/>
+        <result property="likedCount" column="likedCount" jdbcType="OTHER"/>
+        <result property="dislikedCount" column="dislikedCount" jdbcType="OTHER"/>
+        <result property="createdTime" column="createdTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,articleId,parentId,
+        userId,content,likedCount,
+        dislikedCount,createdTime,updatedTime
+    </sql>
+
+    <!-- 通过文章ID获取指定数目的评论（不包括子级评论） -->
+    <select id="selectCommentInfoLimitById"
+            resultType="top.kkuily.xingbackend.model.vo.article.detail.CommentDetailInfoVO">
+        SELECT ac.id,
+               ac.userId,
+               u.username,
+               u.avatar,
+               ac.content,
+               ac.likedCount,
+               ac.dislikedCount,
+               ac.createdTime
+        FROM article_comment AS ac
+                 JOIN user AS u ON ac.userId = u.id
+        WHERE ac.articleId = #{articleId}
+        LIMIT #{skip}, #{pageSize};
+    </select>
+</mapper>

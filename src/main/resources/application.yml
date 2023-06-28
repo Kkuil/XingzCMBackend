@@ -3,6 +3,9 @@ server:
     servlet:
         context-path: /api/xingz-cm
 spring:
+    main:
+        # bean 懒加载
+        lazy-initialization: true
     datasource:
         # mysql
         driver-class-name: com.mysql.cj.jdbc.Driver

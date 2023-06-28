@@ -43,12 +43,6 @@ public class RoleInfoResDTO implements Serializable {
     private String description;
 
     /**
-     * 是否逻辑删除(0：未删除 1：已删除)
-     */
-
-    private String isDeleted;
-
-    /**
      * 创建时间
      */
     private Date createdTime;

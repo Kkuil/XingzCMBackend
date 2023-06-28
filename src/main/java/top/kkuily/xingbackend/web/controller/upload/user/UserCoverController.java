@@ -50,7 +50,7 @@ public class UserCoverController {
         if (StringUtils.isEmpty(isUpload)) {
             return Result.fail(403, "上传失败", MsgType.ERROR_MESSAGE);
         } else {
-            return Result.success("上传成功", isUpload);
+            return Result.success("上传成功", isUpload, MsgType.NOTIFICATION);
         }
     }
 }

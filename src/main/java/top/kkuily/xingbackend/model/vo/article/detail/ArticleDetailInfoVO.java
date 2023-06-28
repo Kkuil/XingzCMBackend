@@ -1,12 +1,15 @@
 package top.kkuily.xingbackend.model.vo.article.detail;
 
+import lombok.Data;
+
 import java.util.Date;
 
 /**
  * @author 小K
  * @description 用户获取文章详情中文章的详情实体
  */
-public class ArticleDetailInfo {
+@Data
+public class ArticleDetailInfoVO {
     /**
      * 文章ID
      */
@@ -38,9 +41,14 @@ public class ArticleDetailInfo {
     private Integer collectedCount;
 
     /**
-     * 评论数
+     * 该用户是否已点赞
      */
-    private Integer commentCount;
+    private Boolean isLiked;
+
+    /**
+     * 该用户是否已收藏
+     */
+    private Boolean isCollected;
 
     /**
      * 发布时间
