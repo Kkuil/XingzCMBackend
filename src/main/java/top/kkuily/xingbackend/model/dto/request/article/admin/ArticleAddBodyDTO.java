@@ -38,7 +38,6 @@ public class ArticleAddBodyDTO {
     /**
      * 标签信息（例如：[1, 2, 3]记录了标签的ID）
      */
-    @Nullable
     private String[] tagIds;
 
     /**

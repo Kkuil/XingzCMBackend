@@ -1,6 +1,5 @@
 package top.kkuily.xingbackend.mapper;
 
-import top.kkuily.xingbackend.model.po.ArticleComment;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**

@@ -1,4 +1,4 @@
-package top.kkuily.xingbackend.model.dto.response.article;
+package top.kkuily.xingbackend.model.dto.response.article.admin;
 
 import lombok.Data;
 
@@ -9,7 +9,7 @@ import java.util.Date;
  * @description 文章分页查询返回类
  */
 @Data
-public class ArticleInfoResDTO {
+public class ArticleInfoResWithAdminDTO {
     /**
      * 文章ID
      */
@@ -49,11 +49,6 @@ public class ArticleInfoResDTO {
      * 文章封面图
      */
     private String cover;
-
-    /**
-     * 是否逻辑删除(0：未删除 1：已删除)
-     */
-    private String isDeleted;
 
     /**
      * 创建时间
