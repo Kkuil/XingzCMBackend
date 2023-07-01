@@ -13,6 +13,7 @@ import top.kkuily.xingbackend.model.dto.request.article.admin.ArticleAddBodyDTO;
 import top.kkuily.xingbackend.model.dto.request.article.admin.ArticleUpdateBodyDTO;
 import top.kkuily.xingbackend.model.dto.request.article.user.UArticleCommentParamsDTO;
 import top.kkuily.xingbackend.model.dto.request.article.user.UArticleListParamsDTO;
+import top.kkuily.xingbackend.model.dto.request.article.user.UArticleListParamsWithUserIdDTO;
 import top.kkuily.xingbackend.service.IArticleCommentService;
 import top.kkuily.xingbackend.service.IArticleService;
 import top.kkuily.xingbackend.utils.Result;
@@ -39,8 +40,20 @@ public class UArticleController {
      */
     @GetMapping("uarticle")
     @ApiSignAuth
-    public Result getList(UArticleListParamsDTO uArticleListParams, HttpServletRequest request) {
+    public Result list(UArticleListParamsDTO uArticleListParams, HttpServletRequest request) {
         return articleService.userGetList(uArticleListParams, request);
+    }
+
+    /**
+     * @param uArticleListParamsWithUserIdDTO UArticleListParamsWithUserIdDTO
+     * @param request            HttpServletRequest
+     * @return Result
+     * @description 文章分页查询接口
+     */
+    @GetMapping("uarticle-user-id")
+    @ApiSignAuth
+    public Result listWithUserId(UArticleListParamsWithUserIdDTO uArticleListParamsWithUserIdDTO, HttpServletRequest request) {
+        return articleService.listWithUserId(uArticleListParamsWithUserIdDTO, request);
     }
 
     // region
@@ -54,7 +67,6 @@ public class UArticleController {
     @PostMapping("uarticle")
     @UserAuthToken
     @ApiSignAuth
-    @Transactional(rollbackFor = Exception.class)
     public Result publish(@RequestBody ArticleAddBodyDTO articleAddBodyDTO, HttpServletRequest request) {
         return articleService.publish(articleAddBodyDTO, request);
     }
@@ -96,6 +108,16 @@ public class UArticleController {
     // endregion
 
     /**
+     * @return
+     */
+    @PostMapping("uarticle/draft")
+    @ApiSignAuth
+    @UserAuthToken
+    public Result saveDraft(@RequestBody ArticleAddBodyDTO articleAddBodyDTO, HttpServletRequest request) {
+        return articleService.saveDraft(articleAddBodyDTO, request);
+    }
+
+    /**
      * @param articleId String
      * @param request   HttpServletRequest
      * @return Result
@@ -119,6 +141,30 @@ public class UArticleController {
     @UserAuthToken
     public Result collect(@PathVariable("articleId") String articleId, HttpServletRequest request) {
         return articleService.collect(articleId, request);
+    }
+
+    /**
+     * @param articleId String
+     * @param request   HttpServletRequest
+     * @return Result
+     * @description 浏览过
+     */
+    @GetMapping("uarticle/visit/{articleId}")
+    @ApiSignAuth
+    @UserAuthToken
+    public Result visit(@PathVariable("articleId") String articleId, HttpServletRequest request) {
+        return articleService.visit(articleId, request);
+    }
+
+    /**
+     * @param userId String
+     * @return Result
+     * @description 获取浏览过的文章
+     */
+    @GetMapping("uarticle/visited")
+    @ApiSignAuth
+    public Result listVisited(String userId, int current, int pageSize) {
+        return articleService.listVisited(userId, current, pageSize);
     }
 
     /**

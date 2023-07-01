@@ -15,14 +15,16 @@
         id,articleId,type,
         createdTime
     </sql>
+
+    <!-- 通过文章ID获取指定类型的文章 -->
     <select id="selectSpecificTypeArticlesById" resultType="top.kkuily.xingbackend.model.bo.Article.ArticleLinkBO">
         SELECT a.id,
                a.title
         FROM user_article AS ua
-                 JOIN article a ON ua.articleId = a.id
+                 JOIN article AS a ON ua.articleId = a.id
         WHERE ua.id = #{userId}
           AND ua.type = #{userArticleTypeEnums}
-        ORDER BY a.createdTime ASC
+        ORDER BY a.createdTime DESC
         LIMIT #{skip}, #{pageSize}
     </select>
 </mapper>

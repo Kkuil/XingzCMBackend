@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.expression.AccessException;
 import top.kkuily.xingbackend.model.dto.request.article.admin.ArticleAddBodyDTO;
 import top.kkuily.xingbackend.model.dto.request.article.user.UArticleListParamsDTO;
+import top.kkuily.xingbackend.model.dto.request.article.user.UArticleListParamsWithUserIdDTO;
 import top.kkuily.xingbackend.model.po.Article;
 import top.kkuily.xingbackend.model.vo.ListParamsVO;
 import top.kkuily.xingbackend.model.vo.article.list.ArticleListFilterVO;
@@ -64,4 +65,37 @@ public interface IArticleService extends IService<Article> {
      * @description 收藏获取消收藏
      */
     Result collect(String articleId, HttpServletRequest request);
+
+    /**
+     * @param articleAddBodyDTO ArticleAddBodyDTO
+     * @param request           HttpServletRequest
+     * @return Result
+     * @description 保存草稿
+     */
+    Result saveDraft(ArticleAddBodyDTO articleAddBodyDTO, HttpServletRequest request);
+
+    /**
+     * @param article String
+     * @param request HttpServletRequest
+     * @return Result
+     * @description 浏览过
+     */
+    Result visit(String articleId, HttpServletRequest request);
+
+    /**
+     * @param userId   String
+     * @param current  int
+     * @param pageSize int
+     * @return Result
+     * @description 获取浏览过的文章
+     */
+    Result listVisited(String userId, int current, int pageSize);
+
+    /**
+     * @param uArticleListParamsWithUserIdDTO UArticleListParamsWithUserIdDTO
+     * @param request                         HttpServletRequest
+     * @return Result
+     * @description 通过用户ID获取文章列表
+     */
+    Result listWithUserId(UArticleListParamsWithUserIdDTO uArticleListParamsWithUserIdDTO, HttpServletRequest request);
 }

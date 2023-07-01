@@ -179,7 +179,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         String token = request.getHeader(USER_TOKEN_KEY_IN_HEADER);
         // 1.1 判断是否有token
         if (StringUtils.isEmpty(token)) {
-            throw new AccessException("token不能为空");
+            throw new AccessException("空令牌");
         }
 
         // 1.2 验证token是否有效
@@ -187,7 +187,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         try {
             payload = Token.parse(token, USER_TOKEN_SECRET);
         } catch (Exception e) {
-            throw new IllegalArgumentException("无效Token");
+            throw new IllegalArgumentException("无效令牌");
         }
 
         // 1.3 验证版本号是否有效

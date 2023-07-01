@@ -52,9 +52,14 @@ public interface ArticleMapper extends BaseMapper<Article> {
             @Param("page") ListPageVO page
     );
 
+
     /**
-     * @return List<ChatGPTModelInfoResDTO>
-     * @description 带有limit的分页查询
+     * @param tagId      int
+     * @param categoryId String
+     * @param current    int
+     * @param pageSize   int
+     * @param userId     String
+     * @return List<ArticleInfoResWithUserDTO>
      */
     List<ArticleInfoResWithUserDTO> listArticlesWithLimitAndUser(
             @PathVariable("tagId") int tagId,
@@ -65,12 +70,38 @@ public interface ArticleMapper extends BaseMapper<Article> {
     );
 
     /**
-     * @return List<ChatGPTModelInfoResDTO>
-     * @description 不带有limit的分页查询
+     * @param tagId      int
+     * @param categoryId String
+     * @return Integer
      */
     Integer listArticlesWithNotLimitAndUser(
             @PathVariable("tagId") int tagId,
             @PathVariable("categoryId") String categoryId
+    );
+
+
+    /**
+     * @param statusId int
+     * @param current  int
+     * @param pageSize int
+     * @param userId   String
+     * @return List<ArticleInfoResWithUserDTO>
+     */
+    List<ArticleInfoResWithUserDTO> listArticlesWithLimitAndUserId(
+            @PathVariable("statusId") int statusId,
+            @PathVariable("current") int current,
+            @PathVariable("pageSize") int pageSize,
+            @PathVariable("userId") String userId
+    );
+
+
+    /**
+     * @param statusId int
+     * @return Integer
+     */
+    Integer listArticlesWithNotLimitAndUserId(
+            @PathVariable("statusId") int statusId,
+            @PathVariable("userId") String userId
     );
 
     /**

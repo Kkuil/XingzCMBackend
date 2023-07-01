@@ -216,7 +216,8 @@
                article_collected_temp.collectedCount,
                article_comment_temp.commentCount,
                CASE WHEN user_liked_article.articleId IS NOT NULL THEN true ELSE false END     AS isLiked,
-               CASE WHEN user_collected_article.articleId IS NOT NULL THEN true ELSE false END AS isCollected
+               CASE WHEN user_collected_article.articleId IS NOT NULL THEN true ELSE false END AS isCollected,
+               CASE WHEN user_visited_article.articleId IS NOT NULL THEN true ELSE false END   AS isVisited
         FROM article a
                  JOIN article_status ON a.statusId = article_status.id
                  JOIN user u ON a.userId = u.id
@@ -242,6 +243,11 @@
                             WHERE ua.type = 3
                               AND ua.id = #{userId}) AS user_collected_article
                            ON a.id = user_collected_article.articleId
+                 LEFT JOIN (SELECT ua.articleId
+                            FROM user_article AS ua
+                            WHERE ua.type = 5
+                              AND ua.id = #{userId}) AS user_visited_article
+                           ON a.id = user_visited_article.articleId
         WHERE (atr.tagId = #{tagId} OR #{tagId} IS NULL)
           AND (acr.categoryId = #{categoryId} OR #{categoryId} IS NULL)
         LIMIT ${(current - 1) * pageSize}, #{pageSize}
@@ -260,9 +266,12 @@
     </sql>
 
     <!--用户分页查询的每篇文章信息-->
-    <resultMap id="ArticleListWithLimitAndUserBaseQuery"
-               type="top.kkuily.xingbackend.model.dto.response.article.user.ArticleInfoResWithUserDTO">
+    <resultMap
+            id="ArticleListWithLimitAndUserBaseQuery"
+            type="top.kkuily.xingbackend.model.dto.response.article.user.ArticleInfoResWithUserDTO"
+    >
         <id property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="userId" column="userId" jdbcType="VARCHAR"/>
         <result property="username" column="username" jdbcType="VARCHAR"/>
         <result property="title" column="title" jdbcType="VARCHAR"/>
         <result property="content" column="content" jdbcType="VARCHAR"/>
@@ -270,6 +279,9 @@
         <result property="likedCount" column="likedCount" jdbcType="VARCHAR"/>
         <result property="collectedCount" column="collectedCount" jdbcType="VARCHAR"/>
         <result property="commentCount" column="commentCount" jdbcType="VARCHAR"/>
+        <result property="isLiked" column="isLiked" jdbcType="BOOLEAN"/>
+        <result property="isCollected" column="isCollected" jdbcType="BOOLEAN"/>
+        <result property="isVisited" column="isVisited" jdbcType="BOOLEAN"/>
         <result property="createdTime" column="createdTime" jdbcType="TIMESTAMP"/>
     </resultMap>
 
@@ -284,6 +296,72 @@
     <select id="listArticlesWithNotLimitAndUser"
             resultType="java.lang.Integer">
         <include refid="ArticleListWithNotLimitAndUserBaseQuery"/>
+
+    </select>
+
+    <!-- ============================================================ -->
+
+    <!--用户带分页的查询根语句-->
+    <sql id="ArticleListWithLimitAndUserIdBaseQuery">
+        SELECT a.id,
+               a.title,
+               a.content,
+               a.cover,
+               a.createdTime,
+               article_liked_temp.likedCount,
+               article_collected_temp.collectedCount,
+               article_comment_temp.commentCount
+        FROM article a
+                 JOIN user u ON a.userId = u.id
+                 LEFT JOIN (SELECT ua.articleId, COUNT(*) AS likedCount
+                            FROM user_article AS ua
+                            WHERE ua.type = 1
+                            GROUP BY ua.articleId) AS article_liked_temp ON a.id = article_liked_temp.articleId
+                 LEFT JOIN (SELECT ua.articleId, COUNT(*) AS collectedCount
+                            FROM user_article AS ua
+                            WHERE ua.type = 3
+                            GROUP BY ua.articleId) AS article_collected_temp ON a.id = article_collected_temp.articleId
+                 LEFT JOIN (SELECT acom.articleId, COUNT(*) AS commentCount
+                            FROM article_comment AS acom
+                            GROUP BY acom.articleId) AS article_comment_temp ON a.id = article_comment_temp.articleId
+        WHERE (a.statusId = #{statusId} OR #{statusId} IS NULL)
+          AND (a.userId = #{userId} OR #{userId} IS NULL)
+        LIMIT ${(current - 1) * pageSize}, #{pageSize}
+    </sql>
+
+    <!--用户不带分页的查询根语句-->
+    <sql id="ArticleListWithNotLimitAndUserIdBaseQuery">
+        SELECT COUNT(*)
+        FROM article a
+                 JOIN user u ON a.userId = u.id
+        WHERE (a.statusId = #{statusId} OR #{statusId} IS NULL)
+          AND (a.userId = #{userId} OR #{userId} IS NULL)
+    </sql>
+
+    <!--用户分页查询的每篇文章信息-->
+    <resultMap id="ArticleListWithLimitAndUserIdBaseQuery"
+               type="top.kkuily.xingbackend.model.dto.response.article.user.ArticleInfoResWithUserProfileDTO">
+        <id property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="title" column="title" jdbcType="VARCHAR"/>
+        <result property="content" column="content" jdbcType="VARCHAR"/>
+        <result property="cover" column="cover" jdbcType="VARCHAR"/>
+        <result property="likedCount" column="likedCount" jdbcType="VARCHAR"/>
+        <result property="collectedCount" column="collectedCount" jdbcType="VARCHAR"/>
+        <result property="commentCount" column="commentCount" jdbcType="VARCHAR"/>
+        <result property="createdTime" column="createdTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <!--用户带分页的查询语句-->
+    <select id="listArticlesWithLimitAndUserId"
+            resultType="top.kkuily.xingbackend.model.dto.response.article.user.ArticleInfoResWithUserDTO">
+        <include refid="ArticleListWithLimitAndUserIdBaseQuery"/>
+
+    </select>
+
+    <!--用户不带分页的查询语句-->
+    <select id="listArticlesWithNotLimitAndUserId"
+            resultType="java.lang.Integer">
+        <include refid="ArticleListWithNotLimitAndUserIdBaseQuery"/>
 
     </select>
 
@@ -325,7 +403,8 @@
     </sql>
 
     <!-- 用户查询文章详情中文章的详情 -->
-    <select id="selectArticleDetailInfo" resultType="top.kkuily.xingbackend.model.vo.article.detail.ArticleDetailInfoVO">
+    <select id="selectArticleDetailInfo"
+            resultType="top.kkuily.xingbackend.model.vo.article.detail.ArticleDetailInfoVO">
         <include refid="ArticleDetailWithUserBaseQuery"/>
 
     </select>

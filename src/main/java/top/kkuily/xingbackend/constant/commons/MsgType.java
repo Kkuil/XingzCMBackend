@@ -31,4 +31,8 @@ public enum MsgType {
     MsgType(int i) {
         this.i = i;
     }
+
+    public int getValue() {
+        return this.i;
+    }
 }

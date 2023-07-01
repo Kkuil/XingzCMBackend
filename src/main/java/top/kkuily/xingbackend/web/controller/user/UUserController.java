@@ -11,15 +11,11 @@ import top.kkuily.xingbackend.anotation.ApiSignAuth;
 import top.kkuily.xingbackend.constant.commons.MsgType;
 import top.kkuily.xingbackend.model.dto.request.user.UserLoginAccountBodyDTO;
 import top.kkuily.xingbackend.model.dto.request.user.UserLoginPhoneBodyDTO;
-import top.kkuily.xingbackend.model.po.UserBg;
-import top.kkuily.xingbackend.service.IUserBgService;
-import top.kkuily.xingbackend.service.IUserRankService;
 import top.kkuily.xingbackend.service.IUserService;
 import top.kkuily.xingbackend.service.other.SmsCaptchaService;
 import top.kkuily.xingbackend.utils.*;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -38,12 +34,6 @@ import static top.kkuily.xingbackend.constant.user.Auth.USER_REGISTRY_CACHE_KEY;
 public class UUserController {
     @Resource
     private IUserService userService;
-
-    @Resource
-    private IUserRankService userRankService;
-
-    @Resource
-    private IUserBgService userBgService;
 
     @Resource
     private StringRedisTemplate stringRedisTemplate;
@@ -133,18 +123,6 @@ public class UUserController {
     }
 
     /**
-     * @param current  int
-     * @param pageSize int
-     * @return Result
-     * @description 获取用户等级列表
-     */
-    @GetMapping("user-rank")
-    @ApiSignAuth
-    public Result listUserRank(int current, int pageSize, int sort) {
-        return userRankService.listUserRank(current, pageSize, sort);
-    }
-
-    /**
      * @param id String
      * @return Result
      * @description 通过用户ID获取用户信息
@@ -153,15 +131,5 @@ public class UUserController {
     @ApiSignAuth
     public Result get(@PathVariable("id") String id, HttpServletRequest request) {
         return userService.get(id, request);
-    }
-
-    /**
-     * @description 获取用户背景图
-     * @return Result
-     */
-    @GetMapping("/user-bg")
-    public Result listBgCover() {
-        List<UserBg> list = userBgService.list();
-        return Result.success("获取成功", list, MsgType.SILENT);
     }
 }

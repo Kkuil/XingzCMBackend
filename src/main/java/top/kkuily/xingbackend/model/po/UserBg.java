@@ -23,6 +23,7 @@ public class UserBg implements Serializable {
     /**
      * 背景图url
      */
+    @TableId
     private String url;
 
     /**

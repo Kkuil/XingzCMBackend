@@ -20,7 +20,11 @@ public enum UserArticleTypeEnums {
     /**
      * 置顶
      */
-    PINNED("置顶", 4);
+    PINNED("置顶", 4),
+    /**
+     * 浏览过
+     */
+    VISITED("浏览过", 5);
 
     private final String name;
     private final int value;

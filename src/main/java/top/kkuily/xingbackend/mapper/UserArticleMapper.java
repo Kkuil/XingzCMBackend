@@ -32,6 +32,7 @@ public interface UserArticleMapper extends BaseMapper<UserArticle> {
             @PathVariable("userArticleTypeEnums") int userArticleTypeEnums,
             @PathVariable("skip") int skip,
             @PathVariable("pageSize") int pageSize,
+            @PathVariable("sortedColumn") String sortedColumn,
             @PathVariable("sortedType") SortedTypeEnums sortedType
     );
 
