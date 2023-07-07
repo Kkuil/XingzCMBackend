@@ -40,7 +40,7 @@ public interface IArticleService extends IService<Article> {
      * @return Result
      * @description 用户查看文章详情
      */
-    Result getArticleAndUserInfoByIdWithUser(String articleId, HttpServletRequest request) throws AccessException;
+    Result getArticleDetail(String articleId, HttpServletRequest request) throws AccessException;
 
     /**
      * @param articleAddBodyDTO ArticleAddBodyDTO

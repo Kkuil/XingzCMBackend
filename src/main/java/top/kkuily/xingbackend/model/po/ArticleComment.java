@@ -29,7 +29,12 @@ public class ArticleComment implements Serializable {
     /**
      * 父级评论ID
      */
-    private Object parentId;
+    private Integer parentId;
+
+    /**
+     * 父级评论ID
+     */
+    private Integer topParentId;
 
     /**
      * 用户ID
@@ -42,16 +47,6 @@ public class ArticleComment implements Serializable {
     private String content;
 
     /**
-     * 喜欢数
-     */
-    private Object likedCount;
-
-    /**
-     * 不喜欢数
-     */
-    private Object dislikedCount;
-
-    /**
      * 创建时间
      */
     private Date createdTime;
@@ -59,7 +54,7 @@ public class ArticleComment implements Serializable {
     /**
      * 更新时间
      */
-    private Date updatedTime;
+    private Date modifiedTime;
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;

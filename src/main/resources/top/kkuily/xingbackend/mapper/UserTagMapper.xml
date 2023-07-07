@@ -27,4 +27,14 @@
         FROM user_tag
         WHERE id = #{userId};
     </delete>
+
+    <!-- 通过用户ID获取tag -->
+    <select id="selectTagsByUserId" resultType="java.lang.String">
+        SELECT tag.tagName
+        FROM user_tag
+                 LEFT JOIN tag
+                           ON user_tag.tagId = tag.id
+        WHERE user_tag.id = #{userId};
+    </select>
+
 </mapper>

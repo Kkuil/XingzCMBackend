@@ -2,16 +2,15 @@ package top.kkuily.xingbackend.web.controller.user;
 
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.websocket.server.PathParam;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.expression.AccessException;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import top.kkuily.xingbackend.anotation.ApiSignAuth;
+import top.kkuily.xingbackend.anotation.FrequencyControl;
 import top.kkuily.xingbackend.anotation.UserAuthToken;
 import top.kkuily.xingbackend.model.dto.request.article.admin.ArticleAddBodyDTO;
 import top.kkuily.xingbackend.model.dto.request.article.admin.ArticleUpdateBodyDTO;
-import top.kkuily.xingbackend.model.dto.request.article.user.UArticleCommentParamsDTO;
+import top.kkuily.xingbackend.model.dto.request.article.user.UArticleCommentAddParamsDTO;
 import top.kkuily.xingbackend.model.dto.request.article.user.UArticleListParamsDTO;
 import top.kkuily.xingbackend.model.dto.request.article.user.UArticleListParamsWithUserIdDTO;
 import top.kkuily.xingbackend.service.IArticleCommentService;
@@ -40,13 +39,14 @@ public class UArticleController {
      */
     @GetMapping("uarticle")
     @ApiSignAuth
+    @FrequencyControl(time = 120, count = 20, target = FrequencyControl.Target.IP)
     public Result list(UArticleListParamsDTO uArticleListParams, HttpServletRequest request) {
         return articleService.userGetList(uArticleListParams, request);
     }
 
     /**
      * @param uArticleListParamsWithUserIdDTO UArticleListParamsWithUserIdDTO
-     * @param request            HttpServletRequest
+     * @param request                         HttpServletRequest
      * @return Result
      * @description 文章分页查询接口
      */
@@ -102,9 +102,8 @@ public class UArticleController {
     @GetMapping("/uarticle/{articleId}")
     @ApiSignAuth
     public Result getArticleAndUserInfoByIdWithUser(@PathVariable String articleId, HttpServletRequest request) throws AccessException {
-        return articleService.getArticleAndUserInfoByIdWithUser(articleId, request);
+        return articleService.getArticleDetail(articleId, request);
     }
-
     // endregion
 
     /**
@@ -126,6 +125,8 @@ public class UArticleController {
     @GetMapping("uarticle/like/{articleId}")
     @ApiSignAuth
     @UserAuthToken
+    @FrequencyControl(time = 120, count = 60, target = FrequencyControl.Target.IP)
+    @FrequencyControl(time = 60, count = 20, target = FrequencyControl.Target.UID)
     public Result like(@PathVariable("articleId") String articleId, HttpServletRequest request) {
         return articleService.like(articleId, request);
     }
@@ -139,6 +140,8 @@ public class UArticleController {
     @GetMapping("uarticle/collect/{articleId}")
     @ApiSignAuth
     @UserAuthToken
+    @FrequencyControl(time = 120, count = 60, target = FrequencyControl.Target.IP)
+    @FrequencyControl(time = 60, count = 20, target = FrequencyControl.Target.UID)
     public Result collect(@PathVariable("articleId") String articleId, HttpServletRequest request) {
         return articleService.collect(articleId, request);
     }
@@ -168,14 +171,16 @@ public class UArticleController {
     }
 
     /**
-     * @param uArticleCommentParamsDTO UArticleCommentParamsDTO
+     * @param uArticleCommentParamsDTO UArticleCommentAddParamsDTO
      * @return Result
      * @description 用户评论接口
      */
     @PostMapping("uarticle/comment")
     @UserAuthToken
     @ApiSignAuth
-    public Result comment(UArticleCommentParamsDTO uArticleCommentParamsDTO, HttpServletRequest request) {
+    @FrequencyControl(time = 120, count = 20, target = FrequencyControl.Target.IP)
+    @FrequencyControl(time = 60, count = 5, target = FrequencyControl.Target.UID)
+    public Result comment(UArticleCommentAddParamsDTO uArticleCommentParamsDTO, HttpServletRequest request) {
         return articleCommentService.comment(uArticleCommentParamsDTO, request);
     }
 }

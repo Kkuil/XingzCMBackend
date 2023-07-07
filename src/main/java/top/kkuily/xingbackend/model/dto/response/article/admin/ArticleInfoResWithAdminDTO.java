@@ -66,6 +66,11 @@ public class ArticleInfoResWithAdminDTO {
     private Integer collectedCount;
 
     /**
+     * 评论数
+     */
+    private Integer commentCount;
+
+    /**
      * 创建时间
      */
     private Date createdTime;

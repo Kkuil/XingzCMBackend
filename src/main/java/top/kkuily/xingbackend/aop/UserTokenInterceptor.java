@@ -11,6 +11,7 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.expression.AccessException;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import top.kkuily.xingbackend.model.po.User;
@@ -45,14 +46,14 @@ public class UserTokenInterceptor {
         String tokenInHeader = request.getHeader(USER_TOKEN_KEY_IN_HEADER);
         // 1. 验证token是否为空
         if (StringUtils.isEmpty(tokenInHeader)) {
-            throw new SecurityException("请先登录");
+            throw new AccessException("请先登录");
         }
 
         // 2. 验证token的有效性
         // 2.1 验证token未过期并是有效的
         Claims payload = Token.parse(tokenInHeader, USER_TOKEN_SECRET);
         if (payload == null) {
-            throw new SecurityException("Access denied");
+            throw new AccessException("Access denied");
         }
         // 2.1 验证 token 的版本号
         String userId = payload.get("id").toString();
@@ -60,14 +61,14 @@ public class UserTokenInterceptor {
         String tokenKey = USER_TOKEN_VERSION_KEY + userId;
         String tokenVersionInCache = stringRedisTemplate.opsForValue().get(tokenKey);
         if (!tokenVersion.equals(tokenVersionInCache)) {
-            throw new SecurityException("令牌失效，请重新登录");
+            throw new AccessException("令牌失效，请重新登录");
         }
 
         // 2.2 验证token中的用户是真实用户
         String id = payload.get("id").toString();
         User userInfo = userService.getById(id);
         if (userInfo == null) {
-            throw new SecurityException("Access denied");
+            throw new AccessException("Access denied");
         }
 
         // 3. 刷新token

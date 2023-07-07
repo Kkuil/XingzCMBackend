@@ -2,6 +2,9 @@ server:
     port: 3170  # 启动端口
     servlet:
         context-path: /api/xingz-cm
+jasypt:
+    encryptor:
+        password: 123456
 spring:
     main:
         # bean 懒加载
@@ -9,8 +12,8 @@ spring:
     datasource:
         # mysql
         driver-class-name: com.mysql.cj.jdbc.Driver
-        username: root
-        password: wwq5714806
+        username: ENC(uurQNy+AGi1iegkCGsPI3e3PTjeukiEWy0s0ckTqEJmnhFycuR2FBSQrrcoBWnnm)
+        password: ENC(j/ug1ZxdpK7WkJL0kMwUYEroBvsI/fNlw4pqPEryqiM4FsqqjuuVThDhThYqsTVQ)
         url: jdbc:mysql://localhost:3306/xingz_cm
     data:
         # redis
@@ -55,7 +58,6 @@ springdoc:
         -   group: 'default'
             paths-to-match: '/**'
             packages-to-scan: top.kkuily.xingbackend.web.controller
-
 yuapi:
     client:
         access-key: 3pjpp7ptchej5wi0maxjcix4kdirlxyy

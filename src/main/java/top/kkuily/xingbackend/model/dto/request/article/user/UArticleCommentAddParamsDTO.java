@@ -7,7 +7,7 @@ import lombok.Data;
  * @description 用户评论实体
  */
 @Data
-public class UArticleCommentParamsDTO {
+public class UArticleCommentAddParamsDTO {
     /**
      * 文章ID
      */

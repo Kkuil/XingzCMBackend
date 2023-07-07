@@ -35,7 +35,7 @@ public class SelfVerificationInterceptor {
         // 获取请求头
         String token = request.getHeader(USER_TOKEN_KEY_IN_HEADER);
         if (StringUtils.isEmpty(token)) {
-            throw new RuntimeException("请先登录");
+            throw new AccessException("请先登录");
         } else {
             Claims parseToken;
             try {

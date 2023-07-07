@@ -3,6 +3,7 @@ package top.kkuily.xingbackend;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.ComponentScan;
 import top.kkuily.xingbackend.service.other.SmsCaptchaService;
 
 /**
@@ -11,7 +12,6 @@ import top.kkuily.xingbackend.service.other.SmsCaptchaService;
 @SpringBootApplication
 @EnableConfigurationProperties({SmsCaptchaService.class})
 public class XingBackendApplication {
-
 	public static void main(String[] args) {
 		SpringApplication.run(XingBackendApplication.class, args);
 	}

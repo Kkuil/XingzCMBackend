@@ -2,6 +2,7 @@ package top.kkuily.xingbackend.model.dto.response.user;
 
 import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.Date;
 
 /**
@@ -60,7 +61,7 @@ public class UserInfoWithCenterResDTO {
     /**
      * 标签
      */
-    private String tags;
+    private ArrayList<String> tags;
 
     /**
      * 等级

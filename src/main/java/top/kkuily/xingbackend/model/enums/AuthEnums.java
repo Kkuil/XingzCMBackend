@@ -79,7 +79,32 @@ public enum AuthEnums {
     /**
      * 查看角色
      */
-    ROLE_CHECK("role_check", 3004);
+    ROLE_CHECK("role_check", 3004),
+
+    /**
+     * 活动分页查询
+     */
+    ACTIVITY_LIST("activity_list", 4000),
+
+    /**
+     * 增加活动
+     */
+    ACTIVITY_ADD("activity_add", 4001),
+
+    /**
+     * 删除活动
+     */
+    ACTIVITY_DEL("activity_del", 4002),
+
+    /**
+     * 更新活动
+     */
+    ACTIVITY_UPDATE("activity_update", 4003),
+
+    /**
+     * 查看活动
+     */
+    ACTIVITY_CHECK("activity_check", 4004);
 
     private final String authName;
     private final int authId;

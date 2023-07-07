@@ -29,9 +29,9 @@ public interface AdminMapper extends BaseMapper<Admin> {
     AdminAuthInfoResDTO selectAuthInfo(@Param("id") String id);
 
     /**
-     * @param params AdminListParamsVO
-     * @param sort   AdminListSortVO
-     * @param filter AdminListFilterVO
+     * @param params ActivityListParamsVO
+     * @param sort   ActivityListSortVO
+     * @param filter ActivityListFilterVO
      * @param page   ListPageVO
      * @return List<AdminInfoResDTO>
      * @description 带有limit的分页查询
@@ -44,9 +44,9 @@ public interface AdminMapper extends BaseMapper<Admin> {
     );
 
     /**
-     * @param params AdminListParamsVO
-     * @param sort   AdminListSortVO
-     * @param filter AdminListFilterVO
+     * @param params ActivityListParamsVO
+     * @param sort   ActivityListSortVO
+     * @param filter ActivityListFilterVO
      * @param page   ListPageVO
      * @return List<AdminInfoResDTO>
      * @description 不带有limit的分页查询

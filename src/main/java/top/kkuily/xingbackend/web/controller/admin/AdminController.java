@@ -118,8 +118,8 @@ public class AdminController {
     }
 
     /**
-     * @param params AdminListParamsVO
-     * @param sort   AdminListSortVO
+     * @param params ActivityListParamsVO
+     * @param sort   ActivityListSortVO
      * @return Result
      * @description 管理员分页查询接口
      */

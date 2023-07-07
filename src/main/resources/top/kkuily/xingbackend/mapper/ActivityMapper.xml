@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="top.kkuily.xingbackend.mapper.ActivityMapper">
+
+    <resultMap id="BaseResultMap" type="top.kkuily.xingbackend.model.po.Activity">
+            <id property="id" column="id" jdbcType="VARCHAR"/>
+            <result property="activatorId" column="activatorId" jdbcType="VARCHAR"/>
+            <result property="title" column="title" jdbcType="VARCHAR"/>
+            <result property="detail" column="detail" jdbcType="VARCHAR"/>
+            <result property="cover" column="cover" jdbcType="VARCHAR"/>
+            <result property="type" column="type" jdbcType="VARCHAR"/>
+            <result property="rule" column="rule" jdbcType="VARCHAR"/>
+            <result property="ps" column="ps" jdbcType="VARCHAR"/>
+            <result property="startTime" column="startTime" jdbcType="TIMESTAMP"/>
+            <result property="endTime" column="endTime" jdbcType="TIMESTAMP"/>
+            <result property="maxAttendance" column="maxAttendance" jdbcType="INTEGER"/>
+            <result property="authorizedPersonnel" column="authorizedPersonnel" jdbcType="INTEGER"/>
+            <result property="maxAquirableXingCoin" column="maxAquirableXingCoin" jdbcType="INTEGER"/>
+            <result property="isDeleted" column="isDeleted" jdbcType="OTHER"/>
+            <result property="createdTime" column="createdTime" jdbcType="TIMESTAMP"/>
+            <result property="modifiedTime" column="modifiedTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,activatorId,title,
+        detail,type,rule,
+        ps,startTime,endTime,
+        maxAttendence,authorizedPersonnel,maxAquirableXingCoin,
+        isDeleted,createdTime,modifiedTime
+    </sql>
+    <select id="listActivitiesWithLimitAndUser"
+            resultType="top.kkuily.xingbackend.model.dto.response.activity.ActivityInfoResWithUserDTO">
+        SELECT *
+        FROM activity
+        WHERE activatorId = #{userId}
+        LIMIT ${(current - 1) * pageSize}, #{pageSize}
+    </select>
+    <select id="listActivitiesWithNotLimitAndUser" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM activity
+        WHERE activatorId = #{userId}
+    </select>
+</mapper>

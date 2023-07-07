@@ -28,6 +28,12 @@ public interface UserTagMapper extends BaseMapper<UserTag> {
      */
     boolean deleteTagIdsById(@PathVariable("userId") String userId);
 
+    /**
+     * @param id String
+     * @return List<String>
+     * @description 通过用户ID获取对应的标签
+     */
+    List<String> selectTagsByUserId(String id);
 }
 
 

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
     <!--日志路径 -->
-    <property name="LOG_PATH" value="/data/logs/xingz-cm"/>
+    <property name="LOG_PATH" value="D:/xingz_cm/XingBackend/src/main/resources/data/logs/xingz-cm"/>
     <property name="LOG_FILE" value="xingz"/>
     <!-- 格式化-->
     <property

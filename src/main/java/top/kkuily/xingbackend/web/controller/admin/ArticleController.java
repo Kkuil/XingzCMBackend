@@ -48,9 +48,6 @@ public class ArticleController {
     private IArticleStatusService articleStatusService;
 
     @Resource
-    private IArticleCategoryService articleCategoryService;
-
-    @Resource
     private IArticleTagService articleTagService;
 
     /**
@@ -269,76 +266,6 @@ public class ArticleController {
             return Result.success("已下架", true, MsgType.NOTIFICATION);
         } else {
             return Result.fail(403, "下架失败", MsgType.ERROR_MESSAGE);
-        }
-    }
-
-    /**
-     * @param id String
-     * @return Result
-     * @description 下架
-     */
-    @PutMapping("/article/hot/{id}")
-    public Result hot(@PathVariable("id") String id) {
-        // 判断文章是否存在
-        Article article = articleService.getById(id);
-        if (article == null) {
-            return Result.fail(403, "该文章不存在，请确认文章ID是否准确", MsgType.ERROR_MESSAGE);
-        }
-        // 判断该文章的状态是不是已经是已热门状态
-        QueryWrapper<ArticleCategory> articleQueryWrapper = new QueryWrapper<>();
-        articleQueryWrapper
-                .eq("id", id)
-                .eq("categoryId", ArticleCategoryEnums.HOT);
-        ArticleCategory ac = articleCategoryService.getOne(articleQueryWrapper);
-
-        if (ac != null) {
-            return Result.fail(403, "该文章分类已为已热门，请勿重复操作", MsgType.WARN_MESSAGE);
-        }
-
-        // 修改文状态为已热门
-        ArticleCategory articleCategory = new ArticleCategory();
-        articleCategory.setId(id);
-        articleCategory.setCategoryId(String.valueOf(ArticleCategoryEnums.HOT));
-        boolean isUpdate = articleCategoryService.updateById(articleCategory);
-        if (isUpdate) {
-            return Result.success("已热门", true, MsgType.NOTIFICATION);
-        } else {
-            return Result.fail(403, "热门失败", MsgType.ERROR_MESSAGE);
-        }
-    }
-
-    /**
-     * @param id String
-     * @return Result
-     * @description 下架
-     */
-    @PutMapping("/article/high-quality/{id}")
-    public Result highQuality(@PathVariable("id") String id) {
-        // 判断文章是否存在
-        Article article = articleService.getById(id);
-        if (article == null) {
-            return Result.fail(403, "该文章不存在，请确认文章ID是否准确", MsgType.ERROR_MESSAGE);
-        }
-        // 判断该文章的状态是不是已经是已优质状态
-        QueryWrapper<ArticleCategory> articleQueryWrapper = new QueryWrapper<>();
-        articleQueryWrapper
-                .eq("id", id)
-                .eq("categoryId", ArticleCategoryEnums.HIGH_QUALITY);
-        ArticleCategory ac = articleCategoryService.getOne(articleQueryWrapper);
-
-        if (ac != null) {
-            return Result.fail(403, "该文章分类已为已优质，请勿重复操作", MsgType.WARN_MESSAGE);
-        }
-
-        // 修改文状态为已优质
-        ArticleCategory articleCategory = new ArticleCategory();
-        articleCategory.setId(id);
-        articleCategory.setCategoryId(String.valueOf(ArticleCategoryEnums.HIGH_QUALITY));
-        boolean isUpdate = articleCategoryService.updateById(articleCategory);
-        if (isUpdate) {
-            return Result.success("已优质", true, MsgType.NOTIFICATION);
-        } else {
-            return Result.fail(403, "优质失败", MsgType.ERROR_MESSAGE);
         }
     }
 }

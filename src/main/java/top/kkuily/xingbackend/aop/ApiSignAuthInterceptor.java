@@ -56,7 +56,7 @@ public class ApiSignAuthInterceptor {
      * @return boolean
      * @description API签名验证
      */
-    private boolean checkSign(Method method, HttpServletRequest request) throws Exception {
+    private boolean checkSign(Method method, HttpServletRequest request) {
         ApiSignAuth apiSignAuth = method.getAnnotation(ApiSignAuth.class);
         boolean isNeedSign = apiSignAuth.value();
         // 判断是否需要验证，不需要验证则直接返回true
@@ -77,16 +77,25 @@ public class ApiSignAuthInterceptor {
         // 获取请求头中的sign值
         String signValue = request.getHeader(SIGN_KEY_IN_HEADER);
 
-        log.error("params: {}", sortedParams);
-        log.error("params: {}", sortedParams.toString().replaceAll("\\n", ""));
+        log.error("sortedParams: {}", sortedParams);
         log.error("signValue: {}", signValue);
 
+        // patch
+        if (signValue == null) {
+            return false;
+        }
+
         // 验证签名
-        boolean isValid = ApiSignAuthUtils.verifySignature(
-                sortedParams.toString().replaceAll("\\n", ""),
-                signValue,
-                PUBLIC_KEY.replaceAll("\\s", "")
-        );
+        boolean isValid = false;
+        try {
+            isValid = ApiSignAuthUtils.verifySignature(
+                    sortedParams.toString().replaceAll("\\n", ""),
+                    signValue,
+                    PUBLIC_KEY.replaceAll("\\s", "")
+            );
+        } catch (Exception e) {
+            throw new RuntimeException("签名验证失败");
+        }
 
         if (isValid) {
             // 判断是否被使用过，防止重放攻击

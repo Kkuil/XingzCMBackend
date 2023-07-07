@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="top.kkuily.xingbackend.mapper.UserActivityMapper">
+
+    <resultMap id="BaseResultMap" type="top.kkuily.xingbackend.model.po.UserActivity">
+            <result property="id" column="id" jdbcType="VARCHAR"/>
+            <result property="activityId" column="activityId" jdbcType="VARCHAR"/>
+            <result property="coin" column="coin" jdbcType="INTEGER"/>
+            <result property="completeTime" column="completeTime" jdbcType="TIMESTAMP"/>
+            <result property="isDeleted" column="isDeleted" jdbcType="OTHER"/>
+            <result property="createdTime" column="createdTime" jdbcType="TIMESTAMP"/>
+            <result property="modifiedTime" column="modifiedTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,activityId,coin,
+        completeTime,isDeleted,createdTime,
+        modifiedTime
+    </sql>
+</mapper>

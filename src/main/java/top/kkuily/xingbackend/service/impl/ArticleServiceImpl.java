@@ -336,9 +336,17 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
      * @description 用户获取文章详情
      */
     @Override
-    public Result getArticleAndUserInfoByIdWithUser(String articleId, HttpServletRequest request) throws AccessException {
+    public Result getArticleDetail(String articleId, HttpServletRequest request) throws AccessException {
         ArticleDetailInfoResWithUserDTO articleDetailInfoResWithUserDTO = new ArticleDetailInfoResWithUserDTO();
         String token = request.getHeader(USER_TOKEN_KEY_IN_HEADER);
+
+        // 获取token
+        Claims userInfoInToken = null;
+        try {
+            userInfoInToken = Token.parse(token, USER_TOKEN_SECRET);
+        } catch (Exception e) {
+            log.info("令牌解析失败");
+        }
 
         // 1. 获取文章信息
         ArticleDetailInfoVO articleDetailInfo;
@@ -347,16 +355,14 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
             articleDetailInfo.setIsLiked(false);
             articleDetailInfo.setIsCollected(false);
         } else {
-            // 获取token
-            Claims userInfoInToken;
-            try {
-                userInfoInToken = Token.parse(token, USER_TOKEN_SECRET);
-            } catch (Exception e) {
-                throw new AccessException("token解析失败");
-            }
             // 获取用户ID
-            String userId = (String) userInfoInToken.get("id");
+            String userId = !ObjectUtil.isEmpty(userInfoInToken) ? (String) userInfoInToken.get("id") : "";
             articleDetailInfo = articleMapper.selectArticleDetailInfo(articleId, userId);
+        }
+
+        // patch
+        if (articleDetailInfo == null) {
+            return Result.fail(403, "文章不存在或已下架", false, MsgType.ERROR_MESSAGE);
         }
 
         // 2. 获取作者信息
@@ -388,11 +394,8 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         authorArticleDetailInfo.setLatestArticles(articleLatest);
         authorArticleDetailInfo.setPinnedArticles(articleTopest);
 
-        // 4. 获取前十条评论
-        List<CommentDetailInfoVO> commentDetailInfoVOS = articleCommentMapper.selectCommentInfoLimitById(articleId, 0, 10);
-
         // 5. 数据整合
-        articleDetailInfoResWithUserDTO.allSet(articleDetailInfo, authorDetailInfo, authorArticleDetailInfo, commentDetailInfoVOS);
+        articleDetailInfoResWithUserDTO.allSet(articleDetailInfo, authorDetailInfo, authorArticleDetailInfo);
         return Result.success("获取成功", articleDetailInfoResWithUserDTO, MsgType.SILENT);
     }
 

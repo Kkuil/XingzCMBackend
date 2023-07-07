@@ -196,7 +196,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         String tokenKey = USER_TOKEN_VERSION_KEY + userId;
         String tokenVersionInCache = stringRedisTemplate.opsForValue().get(tokenKey);
         if (!tokenVersion.equals(tokenVersionInCache)) {
-            return Result.fail(401, "令牌已失效，请重新登录", MsgType.REDIRECT);
+            return Result.fail(401, "令牌失效，请重新登录", MsgType.REDIRECT);
         }
 
         // 2. 查询数据库，验证用户身份
@@ -299,6 +299,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         // 1.1 判断是否已登录
         if (StringUtils.isEmpty(token)) {
             UserInfoWithCenterResDTO user = userMapper.getUserById(id, "");
+            if (user == null) {
+                return Result.fail(404, "用户不存在", MsgType.ERROR_MESSAGE);
+            }
+            List<String> tags = userTagMapper.selectTagsByUserId(id);
+            user.setTags((ArrayList<String>) tags);
             return Result.success("获取成功", user, MsgType.SILENT);
         } else {
             // 1.2 解析Token
@@ -307,10 +312,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
                 payload = Token.parse(token, USER_TOKEN_SECRET);
                 String userId = (String) payload.get("id");
                 UserInfoWithCenterResDTO user = userMapper.getUserById(id, userId);
+                if (user == null) {
+                    return Result.fail(404, "用户不存在", MsgType.ERROR_MESSAGE);
+                }
+                List<String> tags = userTagMapper.selectTagsByUserId(id);
+                user.setTags((ArrayList<String>) tags);
                 return Result.success("获取成功", user, MsgType.SILENT);
             } catch (Exception e) {
                 log.info("无效Token");
                 UserInfoWithCenterResDTO user = userMapper.getUserById(id, "");
+                if (user == null) {
+                    return Result.fail(404, "用户不存在", MsgType.ERROR_MESSAGE);
+                }
+                List<String> tags = userTagMapper.selectTagsByUserId(id);
+                user.setTags((ArrayList<String>) tags);
                 return Result.success("获取成功", user, MsgType.SILENT);
             }
         }

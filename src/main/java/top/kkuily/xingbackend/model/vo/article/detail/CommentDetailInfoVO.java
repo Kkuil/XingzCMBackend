@@ -39,6 +39,16 @@ public class CommentDetailInfoVO {
     private String content;
 
     /**
+     * 请求者是否点赞
+     */
+    private Boolean isLiked;
+
+    /**
+     * 请求者是否不喜欢
+     */
+    private Boolean isDisliked;
+
+    /**
      * 喜欢数
      */
     private Integer likedCount;
@@ -47,6 +57,11 @@ public class CommentDetailInfoVO {
      * 不喜欢数
      */
     private Integer dislikedCount;
+
+    /**
+     * 子评论数
+     */
+    private Integer subCommentCount;
 
     /**
      * 创建时间

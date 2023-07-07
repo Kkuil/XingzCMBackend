@@ -36,6 +36,7 @@
         <result property="cover" column="cover" jdbcType="VARCHAR"/>
         <result property="likedCount" column="likedCount" jdbcType="INTEGER"/>
         <result property="collectedCount" column="collectedCount" jdbcType="INTEGER"/>
+        <result property="commentCount" column="commentCount" jdbcType="INTEGER"/>
         <result property="createdTime" column="createdTime" jdbcType="TIMESTAMP"/>
         <result property="modifiedTime" column="modifiedTime" jdbcType="TIMESTAMP"/>
     </resultMap>
@@ -250,6 +251,7 @@
                            ON a.id = user_visited_article.articleId
         WHERE (atr.tagId = #{tagId} OR #{tagId} IS NULL)
           AND (acr.categoryId = #{categoryId} OR #{categoryId} IS NULL)
+          AND (a.statusId = 1)
         LIMIT ${(current - 1) * pageSize}, #{pageSize}
     </sql>
 
@@ -400,6 +402,7 @@
                               AND ua.id = #{userId}) AS user_collected_article
                            ON a.id = user_collected_article.articleId
         WHERE a.id = #{articleId}
+          AND a.statusId = 1
     </sql>
 
     <!-- 用户查询文章详情中文章的详情 -->

@@ -5,7 +5,6 @@
 <mapper namespace="top.kkuily.xingbackend.mapper.CommentReactionMapper">
 
     <resultMap id="BaseResultMap" type="top.kkuily.xingbackend.model.po.CommentReaction">
-            <id property="id" column="id" jdbcType="OTHER"/>
             <result property="commentId" column="commentId" jdbcType="OTHER"/>
             <result property="userId" column="userId" jdbcType="VARCHAR"/>
             <result property="reaction" column="reaction" jdbcType="OTHER"/>
@@ -13,7 +12,7 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,commentId,userId,
+        commentId,userId,
         reaction,createdTime
     </sql>
 </mapper>

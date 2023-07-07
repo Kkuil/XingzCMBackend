@@ -8,12 +8,11 @@
         <id property="id" column="id" jdbcType="OTHER"/>
         <result property="articleId" column="articleId" jdbcType="VARCHAR"/>
         <result property="parentId" column="parentId" jdbcType="OTHER"/>
+        <result property="topParentId" column="topParentId" jdbcType="OTHER"/>
         <result property="userId" column="userId" jdbcType="VARCHAR"/>
         <result property="content" column="content" jdbcType="VARCHAR"/>
-        <result property="likedCount" column="likedCount" jdbcType="OTHER"/>
-        <result property="dislikedCount" column="dislikedCount" jdbcType="OTHER"/>
         <result property="createdTime" column="createdTime" jdbcType="TIMESTAMP"/>
-        <result property="updatedTime" column="modifiedTime" jdbcType="TIMESTAMP"/>
+        <result property="modifiedTime" column="modifiedTime" jdbcType="TIMESTAMP"/>
     </resultMap>
 
     <!-- 文章评论信息 -->
@@ -30,25 +29,198 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,articleId,parentId,
+        id,articleId,parentId,topParentId,
         userId,content,likedCount,
-        dislikedCount,createdTime,updatedTime
+        dislikedCount,createdTime
     </sql>
 
-    <!-- 通过文章ID获取指定数目的评论（不包括子级评论） -->
-    <select id="selectCommentInfoLimitById"
-            resultType="top.kkuily.xingbackend.model.vo.article.detail.CommentDetailInfoVO">
+    <sql id="UArticleCommentBaseQuery">
         SELECT ac.id,
                ac.userId,
                u.username,
                u.avatar,
                ac.content,
-               ac.likedCount,
-               ac.dislikedCount,
+               CASE
+                   WHEN comment_temp_for_isLiked.isLiked > 0 THEN true
+                   ELSE false
+                   END AS isLiked,
+               CASE
+                   WHEN comment_temp_for_isDisliked.isDisliked > 0 THEN true
+                   ELSE false
+                   END AS isDisliked,
+               comment_temp_for_liked_count.likedCount,
+               comment_temp_for_disliked_count.dislikedCount,
                ac.createdTime
         FROM article_comment AS ac
                  JOIN user AS u ON ac.userId = u.id
+                 LEFT JOIN (SELECT cr.commentId, COUNT(*) AS isLiked
+                            FROM comment_reaction AS cr
+                            WHERE cr.reaction = 1
+                              AND cr.userId = #{userId}
+                            GROUP BY cr.commentId) AS comment_temp_for_isLiked
+                           ON ac.id = comment_temp_for_isLiked.commentId
+                 LEFT JOIN (SELECT cr.commentId, COUNT(*) AS isDisliked
+                            FROM comment_reaction AS cr
+                            WHERE cr.reaction = 0
+                              AND cr.userId = #{userId}
+                            GROUP BY cr.commentId) AS comment_temp_for_isDisliked
+                           ON ac.id = comment_temp_for_isDisliked.commentId
+                 LEFT JOIN (SELECT cr.commentId, COUNT(*) AS likedCount
+                            FROM comment_reaction AS cr
+                            WHERE cr.reaction = 1
+                            GROUP BY cr.commentId) AS comment_temp_for_liked_count
+                           ON ac.id = comment_temp_for_liked_count.commentId
+                 LEFT JOIN (SELECT cr.commentId, COUNT(*) AS dislikedCount
+                            FROM comment_reaction AS cr
+                            WHERE cr.reaction = 0
+                            GROUP BY cr.commentId) AS comment_temp_for_disliked_count
+                           ON ac.id = comment_temp_for_disliked_count.commentId
+    </sql>
+
+    <!-- 分页查询，通过文章ID获取指定数目的评论（不包括子级评论） -->
+    <select
+            id="listArticleCommentWithLimit"
+            resultType="top.kkuily.xingbackend.model.vo.article.detail.CommentDetailInfoVO"
+    >
+        SELECT ac.id,
+               ac.userId,
+               u.username,
+               u.avatar,
+               ac.content,
+               CASE
+                   WHEN comment_temp_for_isLiked.isLiked > 0 THEN true
+                   ELSE false
+                   END AS isLiked,
+               CASE
+                   WHEN comment_temp_for_isDisliked.isDisliked > 0 THEN true
+                   ELSE false
+                   END AS isDisliked,
+               comment_temp_for_liked_count.likedCount,
+               comment_temp_for_disliked_count.dislikedCount,
+               comment_temp_for_sub_comment_count.subCommentCount,
+               ac.createdTime
+        FROM article_comment AS ac
+                 JOIN user AS u ON ac.userId = u.id
+                 LEFT JOIN (SELECT cr.commentId, COUNT(*) AS isLiked
+                            FROM comment_reaction AS cr
+                            WHERE cr.reaction = 1
+                              AND cr.userId = #{userId}
+                            GROUP BY cr.commentId) AS comment_temp_for_isLiked
+                           ON ac.id = comment_temp_for_isLiked.commentId
+                 LEFT JOIN (SELECT cr.commentId, COUNT(*) AS isDisliked
+                            FROM comment_reaction AS cr
+                            WHERE cr.reaction = 0
+                              AND cr.userId = #{userId}
+                            GROUP BY cr.commentId) AS comment_temp_for_isDisliked
+                           ON ac.id = comment_temp_for_isDisliked.commentId
+                 LEFT JOIN (SELECT cr.commentId, COUNT(*) AS likedCount
+                            FROM comment_reaction AS cr
+                            WHERE cr.reaction = 1
+                            GROUP BY cr.commentId) AS comment_temp_for_liked_count
+                           ON ac.id = comment_temp_for_liked_count.commentId
+                 LEFT JOIN (SELECT cr.commentId, COUNT(*) AS dislikedCount
+                            FROM comment_reaction AS cr
+                            WHERE cr.reaction = 0
+                            GROUP BY cr.commentId) AS comment_temp_for_disliked_count
+                           ON ac.id = comment_temp_for_disliked_count.commentId
+                 LEFT JOIN (SELECT ac_child.id, COUNT(*) AS subCommentCount
+                            FROM article_comment AS ac_child
+                                     JOIN article_comment AS ac_parent
+                                          ON ac_child.id = ac_parent.topParentId
+                            GROUP BY ac_child.id) AS comment_temp_for_sub_comment_count
+                           ON ac.id = comment_temp_for_sub_comment_count.id
         WHERE ac.articleId = #{articleId}
-        LIMIT #{skip}, #{pageSize};
+          AND ac.parentId IS NULL
+        ORDER BY ac.createdTime DESC
+        LIMIT ${(current - 1) * pageSize}, #{pageSize}
+    </select>
+
+    <!-- 不分页查询，通过文章ID获取指定数目的评论的总数（不包括子级评论） -->
+    <select
+            id="listArticleCommentWithNotLimit"
+            resultType="java.lang.Integer"
+    >
+        SELECT COUNT(*) AS total
+        FROM article_comment AS ac
+                 JOIN user AS u ON ac.userId = u.id
+        WHERE ac.articleId = #{articleId}
+    </select>
+
+    <!-- ============================================================================== -->
+
+    <!-- 分页查询，通过评论ID获取指定数目的子级评论 -->
+    <select
+            id="listArticleSubCommentWithLimit"
+            resultType="top.kkuily.xingbackend.model.vo.article.detail.SubCommentDetailInfoVO"
+    >
+        SELECT ac.id,
+               ac.userId,
+               u.username,
+               comment_temp_for_sub_comment_parent_username.parentId     AS parentId,
+               comment_temp_for_sub_comment_parent_username.parentUserId AS parentUserId,
+               comment_temp_for_sub_comment_parent_username.username     AS parentUsername,
+               u.avatar,
+               ac.content,
+               CASE
+                   WHEN comment_temp_for_isLiked.isLiked > 0 THEN true
+                   ELSE false
+                   END                                                   AS isLiked,
+               CASE
+                   WHEN comment_temp_for_isDisliked.isDisliked > 0 THEN true
+                   ELSE false
+                   END                                                   AS isDisliked,
+               comment_temp_for_liked_count.likedCount,
+               comment_temp_for_disliked_count.dislikedCount,
+               ac.createdTime
+        FROM article_comment AS ac
+                 JOIN user AS u ON ac.userId = u.id
+                 LEFT JOIN (SELECT cr.commentId, COUNT(*) AS isLiked
+                            FROM comment_reaction AS cr
+                            WHERE cr.reaction = 1
+                              AND cr.userId = #{userId}
+                            GROUP BY cr.commentId) AS comment_temp_for_isLiked
+                           ON ac.id = comment_temp_for_isLiked.commentId
+                 LEFT JOIN (SELECT cr.commentId, COUNT(*) AS isDisliked
+                            FROM comment_reaction AS cr
+                            WHERE cr.reaction = 0
+                              AND cr.userId = #{userId}
+                            GROUP BY cr.commentId) AS comment_temp_for_isDisliked
+                           ON ac.id = comment_temp_for_isDisliked.commentId
+                 LEFT JOIN (SELECT cr.commentId, COUNT(*) AS likedCount
+                            FROM comment_reaction AS cr
+                            WHERE cr.reaction = 1
+                            GROUP BY cr.commentId) AS comment_temp_for_liked_count
+                           ON ac.id = comment_temp_for_liked_count.commentId
+                 LEFT JOIN (SELECT cr.commentId, COUNT(*) AS dislikedCount
+                            FROM comment_reaction AS cr
+                            WHERE cr.reaction = 0
+                            GROUP BY cr.commentId) AS comment_temp_for_disliked_count
+                           ON ac.id = comment_temp_for_disliked_count.commentId
+                 LEFT JOIN (SELECT temp1.parentId,
+                                   temp1.topParentId,
+                                   temp2.parentUserId AS parentUserId,
+                                   temp2.username
+                            FROM (SELECT ac_child.parentId    AS parentId,
+                                         ac_child.topParentId AS topParentId
+                                  FROM article_comment AS ac_child
+                                           JOIN article_comment AS ac_parent
+                                                ON ac_child.parentId = ac_parent.id) AS temp1
+                                     JOIN (SELECT ac.id AS temp_parentId, u.username, u.id AS parentUserId
+                                           FROM user AS u
+                                                    JOIN article_comment AS ac
+                                                         ON u.id = ac.userId) AS temp2
+                                          ON temp1.parentId = temp2.temp_parentId) AS comment_temp_for_sub_comment_parent_username
+                           ON ac.id = comment_temp_for_sub_comment_parent_username.parentId
+        WHERE ac.topParentId = #{commentId}
+        ORDER BY ac.createdTime DESC
+        LIMIT ${(current - 1) * pageSize}, #{pageSize}
+    </select>
+
+    <!-- 不分页查询，通过评论ID获取指定数目的子级评论的总数目 -->
+    <select id="listArticleSubCommentWithNotLimit" resultType="java.lang.Integer">
+        SELECT COUNT(*) AS total
+        FROM article_comment AS ac
+                 JOIN user AS u ON ac.userId = u.id
+        WHERE ac.parentId = #{commentId}
     </select>
 </mapper>

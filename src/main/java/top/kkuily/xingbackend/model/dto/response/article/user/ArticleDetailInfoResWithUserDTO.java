@@ -26,10 +26,6 @@ public class ArticleDetailInfoResWithUserDTO {
      * 作者动态详情
      */
     AuthorArticleDetailInfoVO authorArticleDetailInfo;
-    /**
-     * 评论详情
-     */
-    List<CommentDetailInfoVO> commentDetailInfoVO;
 
     /**
      * @param articleDetailInfo       ArticleDetailInfoVO
@@ -37,15 +33,9 @@ public class ArticleDetailInfoResWithUserDTO {
      * @param authorArticleDetailInfo AuthorArticleDetailInfoVO
      * @description 批量设置文章
      */
-    public void allSet(
-            ArticleDetailInfoVO articleDetailInfo,
-            AuthorDetailInfoVO authorDetailInfo,
-            AuthorArticleDetailInfoVO authorArticleDetailInfo,
-            List<CommentDetailInfoVO> commentDetailInfoVO
-    ) {
+    public void allSet(ArticleDetailInfoVO articleDetailInfo, AuthorDetailInfoVO authorDetailInfo, AuthorArticleDetailInfoVO authorArticleDetailInfo) {
         this.setArticleDetailInfo(articleDetailInfo);
         this.setAuthorDetailInfo(authorDetailInfo);
         this.setAuthorArticleDetailInfo(authorArticleDetailInfo);
-        this.setCommentDetailInfoVO(commentDetailInfoVO);
     }
 }
