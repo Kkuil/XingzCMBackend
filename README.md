@@ -24,6 +24,9 @@
 9. 使用自定义注解实现用户和管理员的登录校验及验证
 10. 使用自定义注解实现API接口的频控，功能包括同一接口的重复注解使用完成自定义频控流速，还包括选择将什么作为频控的依据，例如：uuid，IP等
 
+## 登录
+![image](https://cdn.staticaly.com/gh/Kkuil/picx-images-hosting@master/20230708/image.3do37unegs60.webp)
+
 ## 星知文章用户后台项目源码链接：[https://github.com/Kkuil/XingzCMBms](https://github.com/Kkuil/XingzCMBms)
 ## 星知文章后端项目源码链接：[https://github.com/Kkuil/XingzCMBackend](https://github.com/Kkuil/XingzCMBackend)
 
