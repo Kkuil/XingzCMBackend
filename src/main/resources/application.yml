@@ -33,13 +33,13 @@ mybatis-plus:
 aliyun:
     # 阿里云短信服务
     sms:
-        accessKeyId: ENC(${自定义})
-        accessKeySecret: ENC(${自定义})
+        accessKeyId: ${你的accessKeyId}
+        accessKeySecret: ${你的accessKeySecret}
     # 阿里云oss对象存储服务
     oss:
         endpoint: https://oss-cn-beijing.aliyuncs.com
-        accessKeyId: ENC(${自定义})
-        accessKeySecret: ENC(${自定义})
+        accessKeyId: ${你的accessKeyId}
+        accessKeySecret: ${你的accessKeySecret}
         bucketName: xzwz-cm
 ## springdoc-openapi项目配置
 springdoc:
