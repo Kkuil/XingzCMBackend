@@ -4,7 +4,7 @@ server:
         context-path: /api/xingz-cm
 jasypt:
     encryptor:
-        password: 123456
+        password: ${自定义}
 spring:
     main:
         # bean 懒加载
@@ -12,8 +12,8 @@ spring:
     datasource:
         # mysql
         driver-class-name: com.mysql.cj.jdbc.Driver
-        username: ENC(uurQNy+AGi1iegkCGsPI3e3PTjeukiEWy0s0ckTqEJmnhFycuR2FBSQrrcoBWnnm)
-        password: ENC(j/ug1ZxdpK7WkJL0kMwUYEroBvsI/fNlw4pqPEryqiM4FsqqjuuVThDhThYqsTVQ)
+        username: ENC(${自定义})
+        password: ENC(${自定义})
         url: jdbc:mysql://localhost:3306/xingz_cm
     data:
         # redis
@@ -33,13 +33,13 @@ mybatis-plus:
 aliyun:
     # 阿里云短信服务
     sms:
-        accessKeyId: ENC(tHoUuFsmy4UA8dahCWIO8NmD+9RHPQFbdnrWWHgI3JdXYebFGcmNjhbYpdFvwv8EJxxhxp7Bfwy8IeNXD5L9uA==|)
-        accessKeySecret: ENC(OxwCYphe5PKjdXc5yqjewgGAatSfxYi+NC+7ViG1DUUEvJ/UgegSlnqEwGuSbeix6ohWpcs27We7TxGmI8FiVw==|)
+        accessKeyId: ENC(${自定义})
+        accessKeySecret: ENC(${自定义})
     # 阿里云oss对象存储服务
     oss:
         endpoint: https://oss-cn-beijing.aliyuncs.com
-        accessKeyId: ENC(Vc6lEhyWTUncfWm9KM1BgCUJDJdHXvlDjqCcqo1fqfrZ1fFy9gxcYyVjP+UglDPSz7Mzp2vEjm+7jo9ahfr0fQ==|)
-        accessKeySecret: ENC(G3OxWaToOkYYF1IgUfuRIf9Xxx9lyGCwAMeW7YJcImvFNmWvIWgANfx79esZ/WzZlguigQSBHOtFvgJN9whxBw==|)
+        accessKeyId: ENC(${自定义})
+        accessKeySecret: ENC(${自定义})
         bucketName: xzwz-cm
 ## springdoc-openapi项目配置
 springdoc:
