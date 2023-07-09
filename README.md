@@ -12,6 +12,8 @@
 9. hutool
 10. jsonwebtoken
 
+## 项目MySQL初始化文件位于项目一级目录mysql -> xingz_cm.sql
+
 ## 项目亮点：
 1. 使用Redis进行用户登录凭证版本(token version)进行存储和认证，实现单用户登录
 2. 使用API签名认证实现API接口保护，包括防重放攻击和防参数篡改
