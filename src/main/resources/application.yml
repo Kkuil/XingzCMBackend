@@ -2,9 +2,6 @@ server:
     port: 3170  # 启动端口
     servlet:
         context-path: /api/xingz-cm
-jasypt:
-    encryptor:
-        password: ${自定义}
 spring:
     main:
         # bean 懒加载
@@ -12,16 +9,15 @@ spring:
     datasource:
         # mysql
         driver-class-name: com.mysql.cj.jdbc.Driver
-        username: ENC(${自定义})
-        password: ENC(${自定义})
+        username: root
+        password: wwq5714806
         url: jdbc:mysql://localhost:3306/xingz_cm
     data:
         # redis
         redis:
             database: 0
             host: localhost
-            port: 6379
-            password: 123456
+            port: 3309
     servlet:
         multipart:
             max-file-size: 10MB
@@ -33,13 +29,13 @@ mybatis-plus:
 aliyun:
     # 阿里云短信服务
     sms:
-        accessKeyId: ${你的accessKeyId}
-        accessKeySecret: ${你的accessKeySecret}
+        accessKeyId: ${aliyun.sms.accessKeyId}
+        accessKeySecret: ${aliyun.sms.accessKeySecret}
     # 阿里云oss对象存储服务
     oss:
         endpoint: https://oss-cn-beijing.aliyuncs.com
-        accessKeyId: ${你的accessKeyId}
-        accessKeySecret: ${你的accessKeySecret}
+        accessKeyId: ${aliyun.oss.accessKeyId}
+        accessKeySecret: ${aliyun.oss.accessKeySecret}
         bucketName: xzwz-cm
 ## springdoc-openapi项目配置
 springdoc:

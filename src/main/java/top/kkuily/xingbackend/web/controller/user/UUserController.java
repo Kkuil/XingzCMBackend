@@ -128,7 +128,7 @@ public class UUserController {
      * @description 通过用户ID获取用户信息
      */
     @GetMapping("/user/{id}")
-    @ApiSignAuth
+    // @ApiSignAuth
     public Result get(@PathVariable("id") String id, HttpServletRequest request) {
         return userService.get(id, request);
     }

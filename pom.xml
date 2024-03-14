@@ -184,13 +184,6 @@
             <version>2.8.0</version>
         </dependency>
 
-        <!-- yucongming-chatgpt -->
-        <dependency>
-            <groupId>com.yucongming</groupId>
-            <artifactId>yucongming-java-sdk</artifactId>
-            <version>0.0.2</version>
-        </dependency>
-
         <!-- logback -->
         <dependency>
             <groupId>ch.qos.logback</groupId>
